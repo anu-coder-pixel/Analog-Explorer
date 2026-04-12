@@ -2099,15 +2099,21 @@ const topics_core: TopicData[] = [
     category: "Angle Modulation",
     theory: {
       points: [
-        "In direct FM, the message signal directly controls the frequency of an oscillator (VCO).",
-        "Using a varactor diode in the LC tank: C = C₀ - k·m(t), so ω₀ = 1/√(LC) varies with m(t).",
-        "Advantage: large frequency deviations are easily achieved.",
-        "Disadvantage: carrier frequency stability is poor compared to indirect (Armstrong) method.",
+        "Direct FM is a method in which the instantaneous frequency of the carrier is varied directly by the message signal.",
+        "In this method, a Voltage Controlled Oscillator (VCO) is used. The message signal m(t) is applied to a varactor diode present in the LC tank circuit. This changes the capacitance of the circuit.",
+        "Since the resonant frequency of an LC oscillator depends on capacitance, any variation in capacitance results in a change in frequency, thereby producing frequency modulation.",
+        "Thus, the carrier frequency varies continuously according to the message signal.",
+        "Working Principle: Message signal → changes capacitance → changes resonant frequency → FM signal generated.",
+        "Advantages: Simple implementation. Large frequency deviation easily achieved.",
+        "Disadvantages: Poor frequency stability. Affected by temperature and component variations. Less accurate compared to indirect (Armstrong) method.",
       ],
       formulas: [
-        { label: "Oscillator frequency", expression: "\\omega_0 = \\frac{1}{\\sqrt{LC}}" },
-        { label: "Variable capacitance", expression: "C = C_0 - k \\cdot m(t)" },
-        { label: "Freq deviation ratio", expression: "\\frac{\\Delta C}{C_0} = \\frac{2\\Delta f}{f_0}" },
+        { label: "Oscillator Frequency", expression: "\\omega_0 = \\frac{1}{\\sqrt{LC}}" },
+        { label: "Variable Capacitance (Varactor Diode)", expression: "C = C_0 - k\\,m(t)" },
+        { label: "Modified Frequency", expression: "\\omega = \\frac{1}{\\sqrt{L(C_0 - k\\,m(t))}}" },
+        { label: "Approximation (small signals)", expression: "\\omega \\approx \\omega_c\\left(1 + \\frac{k\\,m(t)}{2C_0}\\right)" },
+        { label: "FM Equation", expression: "\\omega = \\omega_c + k_f\\,m(t)" },
+        { label: "Frequency Sensitivity", expression: "k_f = \\frac{k\\,\\omega_c}{2C_0}" },
       ],
     },
     blockDiagram: {
