@@ -13,6 +13,7 @@ export function AppSidebar({ selectedTopicId, onSelectTopic }: SidebarProps) {
     "Introduction": false,
     "Signals & Systems": false,
     "Amplitude Modulation": true,
+    "Phase Locked Loop": false,
     "Angle Modulation": true,
     "Noise Analysis": false,
   });
@@ -49,6 +50,7 @@ export function AppSidebar({ selectedTopicId, onSelectTopic }: SidebarProps) {
             "Introduction": <Monitor className="w-4 h-4" />,
             "Signals & Systems": <Zap className="w-4 h-4" />,
             "Amplitude Modulation": <Radio className="w-4 h-4" />,
+            "Phase Locked Loop": <Waves className="w-4 h-4" />,
             "Angle Modulation": <Waves className="w-4 h-4" />,
             "Noise Analysis": <BarChart3 className="w-4 h-4" />,
           };

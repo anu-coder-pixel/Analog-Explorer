@@ -82,18 +82,18 @@ const topics_core: TopicData[] = [
         { from: 2, to: 4 },
       ],
     },
-   circuitDiagram: {
-  image:"am.png",   // ✅ ADD THIS
+    circuitDiagram: {
+      image: "am.png",   // ✅ ADD THIS
 
-  description: "AM can be generated using a switching modulator...",
-  svgLabel: "AM Generator Circuit",
-  elements: [
-    "Message source m(t) connected to transformer primary",
-    "Carrier cos(ωc·t) drives switching diodes D1, D2",
-    "Bandpass filter tuned to ωc at output",
-    "Output: AM signal φ_AM(t)",
-  ],
-},
+      description: "AM can be generated using a switching modulator...",
+      svgLabel: "AM Generator Circuit",
+      elements: [
+        "Message source m(t) connected to transformer primary",
+        "Carrier cos(ωc·t) drives switching diodes D1, D2",
+        "Bandpass filter tuned to ωc at output",
+        "Output: AM signal φ_AM(t)",
+      ],
+    },
     simulation: {
       type: "am",
       description: "Visualize AM waveform with adjustable modulation index and carrier frequency.",
@@ -484,7 +484,7 @@ const topics_core: TopicData[] = [
       ],
     },
     circuitDiagram: {
-      image:"freq_mixer.jpeg",
+      image: "freq_mixer.jpeg",
       description: "Any modulator circuit (switching, ring, etc.) can serve as a mixer by replacing the carrier with the local oscillator signal.",
       svgLabel: "Frequency Mixer Circuit",
       elements: [
@@ -677,7 +677,7 @@ const topics_core: TopicData[] = [
       ],
     },
     circuitDiagram: {
-      image:"demodam.jpeg",
+      image: "demodam.jpeg",
       description: "Envelope detector using a diode, capacitor, and resistor.",
       svgLabel: "Envelope Detector Circuit",
       elements: [
@@ -880,7 +880,7 @@ const topics_core: TopicData[] = [
       ],
     },
     circuitDiagram: {
-      image:"ssb.jpeg",
+      image: "ssb.jpeg",
       description: "SSB generator using selective filtering: DSB-SC modulator followed by a sharp-cutoff sideband filter.",
       svgLabel: "SSB Filter Method Circuit",
       elements: [
@@ -1074,7 +1074,7 @@ const topics_core: TopicData[] = [
       ],
     },
     circuitDiagram: {
-      image:"qam.jpeg",
+      image: "qam.jpeg",
       description: "Two balanced modulators with a 90° phase splitter for the carrier.",
       svgLabel: "QAM Circuit",
       elements: [
@@ -1171,7 +1171,7 @@ const topics_core: TopicData[] = [
       ],
     },
     circuitDiagram: {
-      image:"vsb.jpeg",
+      image: "vsb.jpeg",
       description: "Standard DSB modulator followed by a VSB shaping filter with gradual roll-off.",
       svgLabel: "VSB System Circuit",
       elements: [
@@ -1273,7 +1273,7 @@ const topics_core: TopicData[] = [
       ],
     },
     circuitDiagram: {
-      image:"carrier-ac_dsbsc.jpeg",
+      image: "carrier-ac_dsbsc.jpeg",
       description: "Squaring loop carrier recovery circuit.",
       svgLabel: "Carrier Acquisition Circuit",
       elements: [
@@ -1337,18 +1337,26 @@ const topics_core: TopicData[] = [
   {
     id: "pll",
     title: "Phase Locked Loop (PLL)",
-    category: "Amplitude Modulation",
+    category: "Phase Locked Loop",
     theory: {
       points: [
-        "A PLL consists of a phase detector, a loop filter H(s), and a voltage-controlled oscillator (VCO).",
-        "The VCO frequency is: ω_VCO = ωc + c·e₀(t), where c is the VCO sensitivity and e₀(t) is the control voltage.",
-        "In lock, the PLL tracks the incoming signal phase: θ₀(t) ≈ θᵢ(t), and the error signal e₀(t) is proportional to the input frequency deviation.",
-        "For FM demodulation: e₀(t) = (kf/c)·m(t) — the VCO control voltage is the demodulated baseband signal.",
+        "A Phase Locked Loop (PLL) is a feedback control system that locks the phase and frequency of an output signal to that of an input signal.",
+        "It continuously compares the input signal with the output of a Voltage Controlled Oscillator (VCO) and adjusts the VCO frequency to maintain synchronization.",
+        "Main Components: (1) Phase Detector (Multiplier) — compares input and VCO signals, produces error signal proportional to phase difference. (2) Loop Filter H(s) — removes high-frequency components, produces smooth control voltage. (3) VCO — generates output signal, frequency varies with control voltage.",
+        "Working Principle: Input signal is compared with VCO output → Phase difference produces an error signal → Loop filter smooths this signal → VCO adjusts frequency accordingly → System reaches lock condition when phase difference is constant.",
+        "Key Points: PLL is a negative feedback system. Used in FM demodulation, frequency synthesis, and synchronization. When locked: output frequency = input frequency.",
       ],
       formulas: [
-        { label: "Transfer function", expression: "\\frac{\\Theta_o(s)}{\\Theta_i(s)} = \\frac{AKH(s)}{s + AKH(s)}" },
-        { label: "Error transfer", expression: "\\frac{\\Theta_e(s)}{\\Theta_i(s)} = \\frac{s}{s + AKH(s)}" },
-        { label: "FM demod output", expression: "e_o(t) = \\frac{k_f}{c} m(t)" },
+        { label: "Input Signal", expression: "x_i(t) = A\\sin(\\omega_c t + \\theta_i)" },
+        { label: "VCO Output", expression: "x_o(t) = B\\cos(\\omega_c t + \\theta_o)" },
+        { label: "Phase Detector Output", expression: "x(t) = \\frac{AB}{2}[\\sin(2\\omega_c t + \\theta_i + \\theta_o) + \\sin(\\theta_i - \\theta_o)]" },
+        { label: "After Loop Filter", expression: "e_o(t) = \\frac{AB}{2}\\sin(\\theta_i - \\theta_o)" },
+        { label: "Small Phase Error Approx", expression: "e_o(t) \\approx \\frac{AB}{2}(\\theta_i - \\theta_o)" },
+        { label: "VCO Frequency", expression: "\\omega_o(t) = \\omega_c + K_v e_o(t)" },
+        { label: "Transfer Function (PLL)", expression: "T(s) = \\frac{G(s)}{1 + G(s)H(s)}" },
+        { label: "Closed Loop Gain", expression: "T(s) = \\frac{K}{s + K}" },
+        { label: "Lock Condition", expression: "\\omega_o = \\omega_i" },
+        { label: "FM Demodulation Output", expression: "e_o(t) \\propto m(t)" },
       ],
     },
     blockDiagram: {
@@ -1370,14 +1378,14 @@ const topics_core: TopicData[] = [
       ],
     },
     circuitDiagram: {
-      image:"pll.jpeg",
-      description: "IC-based PLL (e.g., NE565) with external loop filter components.",
+      image: "pll.jpeg",
+      description: "PLL circuit: input signal A·sin(ωct+θi) and VCO output B·cos(ωct+θo) fed to a multiplier (phase detector). Output x(t) passes through Loop Filter H(s) to produce e₀(t), which feeds back to control the VCO.",
       svgLabel: "PLL Circuit",
       elements: [
-        "Phase detector (analog multiplier or XOR)",
-        "Loop filter (RC or active integrator)",
-        "VCO (voltage-to-frequency converter)",
-        "Feedback from VCO output to phase detector",
+        "Phase detector (analog multiplier)",
+        "Loop filter H(s) (RC or active integrator)",
+        "VCO — output frequency controlled by e₀(t)",
+        "Feedback path from VCO output to phase detector",
       ],
     },
     simulation: {
@@ -1471,7 +1479,7 @@ const topics_core: TopicData[] = [
       ],
     },
     circuitDiagram: {
-      image:"superhe..jpeg",
+      image: "superhe..jpeg",
       description: "Complete superheterodyne AM receiver with AGC loop.",
       svgLabel: "Superheterodyne Circuit",
       elements: [
@@ -1647,7 +1655,7 @@ const topics_core: TopicData[] = [
       ],
     },
     circuitDiagram: {
-      image:"fm.jpeg",
+      image: "fm.jpeg",
       description: "VCO-based direct FM transmitter using a varactor diode.",
       svgLabel: "FM Transmitter Circuit",
       elements: [
@@ -1745,7 +1753,7 @@ const topics_core: TopicData[] = [
       ],
     },
     circuitDiagram: {
-      image:"pm.jpeg",
+      image: "pm.jpeg",
       description: "PM using a voltage-variable phase shifter in the carrier path.",
       svgLabel: "PM Circuit",
       elements: [
@@ -1844,7 +1852,7 @@ const topics_core: TopicData[] = [
       ],
     },
     circuitDiagram: {
-      image:"nbfm.jpeg",
+      image: "nbfm.jpeg",
       description: "NBFM generator using a balanced modulator and phase adder.",
       svgLabel: "NBFM Circuit",
       elements: [
@@ -1942,7 +1950,7 @@ const topics_core: TopicData[] = [
       ],
     },
     circuitDiagram: {
-      image:"nbpm.jpeg",
+      image: "nbpm.jpeg",
       description: "NBPM uses the same structure as NBFM but without the integrator.",
       svgLabel: "NBPM Circuit",
       elements: [
@@ -2039,7 +2047,7 @@ const topics_core: TopicData[] = [
       ],
     },
     circuitDiagram: {
-      image:"demo fm.jpeg",
+      image: "demo fm.jpeg",
       description: "Balanced discriminator using two detuned resonant circuits.",
       svgLabel: "FM Discriminator Circuit",
       elements: [
@@ -2378,8 +2386,12 @@ export const categories = [
       "am", "nonlinear-modulator", "switching-modulator", "ring-modulator",
       "frequency-mixer", "dsb-sc", "am-demodulation", "envelope-detector",
       "ssb", "hilbert-transform", "qam", "vsb",
-      "carrier-acquisition", "pll", "superheterodyne",
+      "carrier-acquisition", "superheterodyne",
     ],
+  },
+  {
+    name: "Phase Locked Loop",
+    topicIds: ["pll"],
   },
   {
     name: "Angle Modulation",
