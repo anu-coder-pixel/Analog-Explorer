@@ -8,13 +8,13 @@ interface Message {
 
 const faqResponses: Record<string, string> = {
   "am": "AM (Amplitude Modulation) varies the carrier amplitude proportionally to the message signal m(t). Signal: φ(t) = [Ac + m(t)]cos(ωct). µ = mp/Ac. Bandwidth = 2fm. Total power Pt = Pc(1 + µ²/2).",
-  "fm": "FM (Frequency Modulation) varies carrier frequency: fi(t) = fc + kf·m(t). Bandwidth ≈ 2(Δf + fm) (Carson's Rule). FM has superior noise immunity; SNR gain over AM is 3β²/(1 + β).",
+  "fm": "FM varies carrier frequency: fi(t) = fc + kf·m(t). Demodulated using Slope Detection (Differentiator + Envelope Detector) or Limiter-Discriminator methods. BW ≈ 2(Δf + fm). Increasing Δf improves SNR but requires more bandwidth.",
   "modulation": "Modulation shifts baseband signals to high frequency for efficient antenna radiation (size ∝ λ/4), allows FDM, and improves noise performance. Non-linear, switching, and ring modulators are used for generation.",
   "dsb": "DSB-SC (Double Sideband Suppressed Carrier) φ(t) = m(t)cos(ωct). Saves carrier power but requires coherent detection using carrier recovery (PLL/Costas loop). BW = 2fm.",
   "ssb": "SSB (Single Sideband) transmits only one sideband (USB/LSB). BW = fm (saves 50% BW). Generated using phase shift (Hilbert transform) or selective filtering methods.",
-  "noise": "Communication noise includes Thermal (N = kTB) and Shot noise. Noise figure F = SNR_in / SNR_out. Friis formula calculates total noise in cascaded systems.",
+  "noise": "Communication noise includes Thermal (N = kTB) and Shot noise. Noise figure F = SNR_in / SNR_out. Noise power depends on bandwidth (No = NB).",
   "pll": "PLL is a feedback system locking VCO to input phase. Key formulas: Steady-state error θe = arcsin(Δω/KvKd). Loop Gain K = Kd·Kv. Used for FM demodulation and carrier recovery.",
-  "snr": "SNR = Signal Power / Noise Power. SNR(dB) = 10log10(S/N). For FM systems, increasing bandwidth improves SNR at the cost of more noise (N ∝ B).",
+  "snr": "SNR = Signal Power / Noise Power (So/No). Noise is modeled as AWGN with constant PSD (No = N×B). In DSB-SC, the output SNR is approx. equal to input SNR. Increasing bandwidth increases noise power, which can degrade SNR.",
   "fourier": "Fourier Transform X(ω) = ∫x(t)e^(-jωt)dt converts time signals to frequency domain. Key for spectral analysis of AM/FM signals and calculating bandwidth.",
   "bandwidth": "Bandwidth is the spectrum width needed. AM/DSB: 2fm. SSB: fm. FM: 2(Δf + fm). Larger BW allows faster data but collects more noise.",
   "envelope": "Envelope detector consists of a diode and RC filter. Demodulates AM when µ ≤ 1. Requirement: 1/fc << RC << 1/fm. Simple but effective for AM.",
