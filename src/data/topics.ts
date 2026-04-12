@@ -2268,7 +2268,7 @@ const signalsTopics: TopicData[] = [
       ],
     },
     blockDiagram: { description: "Fourier analysis pipeline.", svgLabel: "Fourier Analysis", blocks: [{ label: "x(t)", x: 20, y: 60, w: 80, h: 40 }, { label: "FT", x: 150, y: 60, w: 80, h: 40 }, { label: "X(ω)", x: 280, y: 60, w: 80, h: 40 }], arrows: [{ from: 0, to: 1 }, { from: 1, to: 2 }] },
-    numericals: [{ id: "ft-1", title: "FT of Rectangular Pulse", difficulty: "Medium", given: "x(t) = rect(t/τ), τ = 1ms", formula: "X(ω) = τ sinc(ωτ/2π)", steps: ["X(f) = τ sinc(fτ)", "First null at f = 1/τ = 1000 Hz", "Bandwidth ≈ 1 kHz"], answer: "X(f) = 10⁻³ sinc(10⁻³f), BW ≈ 1 kHz" }],
+    numericals: [{ id: "ft-1", title: "FT of Rectangular Pulse", difficulty: "Medium", given: "x(t) = rect(t/τ), τ = 1ms", formula: "X(ω) = τ sinc(ωτ/2)", steps: ["Apply Fourier Transform definition to rect(t/τ)", "X(ω) = τ sinc(ωτ/2)", "The sinc function is defined as sinc(x) = sin(x)/x", "First null at ω = 2π/τ, i.e., f = 1/τ = 1000 Hz", "Bandwidth ≈ 1 kHz"], answer: "X(ω) = τ sinc(ωτ/2), BW ≈ 1 kHz" }],
   },
 ];
 
