@@ -6,28 +6,36 @@ interface Message {
   text: string;
 }
 
+// Order matters: place more specific terms (like 'qam') before general terms (like 'am')
+// or use the improved findResponse logic below.
 const faqResponses: Record<string, string> = {
-  "am": "AM (Amplitude Modulation) varies the carrier amplitude proportionally to the message signal m(t). Signal: φ(t) = [Ac + m(t)]cos(ωct). µ = mp/Ac. Bandwidth = 2fm. Total power Pt = Pc(1 + µ²/2).",
-  "fm": "FM varies carrier frequency: fi(t) = fc + kf·m(t). Demodulated using Slope Detection (Differentiator + Envelope Detector) or Limiter-Discriminator methods. BW ≈ 2(Δf + fm). Increasing Δf improves SNR but requires more bandwidth.",
-  "modulation": "Modulation shifts baseband signals to high frequency for efficient antenna radiation (size ∝ λ/4), allows FDM, and improves noise performance. Non-linear, switching, and ring modulators are used for generation.",
-  "dsb": "DSB-SC (Double Sideband Suppressed Carrier) φ(t) = m(t)cos(ωct). Saves carrier power but requires coherent detection using carrier recovery (PLL/Costas loop). BW = 2fm.",
+  "qam": "QAM (Quadrature Amplitude Modulation) transmits two independent signals using two carriers in quadrature (sine and cosine). It has double the spectral efficiency of DSB. BW = 2B. Requires perfect phase locking to avoid crosstalk.",
   "ssb": "SSB (Single Sideband) transmits only one sideband (USB/LSB). BW = fm (saves 50% BW). Generated using phase shift (Hilbert transform) or selective filtering methods.",
   "vsb": "VSB (Vestigial Sideband) transmits one full sideband and a vestige of the other. It is a compromise between SSB and DSB, used for TV broadcasting. BW = B + f_vestige.",
-  "qam": "QAM (Quadrature Amplitude Modulation) transmits two independent signals using two carriers in quadrature (sine and cosine). It has double the spectral efficiency of DSB. BW = 2B. Requires perfect phase locking to avoid crosstalk.",
+  "hilbert": "Hilbert Transform shifts each frequency component by -90°. Used in SSB generation (Phase Shift Method) to create the analytic signal. m_h(t) = m(t) * (1/πt).",
+  "costas": "Costas Loop is a specialized PLL used for carrier recovery in DSB-SC. It uses two parallel paths (I and Q) to maintain phase lock without a carrier pilot.",
+  "superheterodyne": "Superheterodyne receiver converts incoming RF to a fixed intermediate frequency (IF) before demodulation. RF Amp → Mixer → IF Amp → Demodulator. Common IF is 455 kHz.",
+  "envelope": "Envelope detector consists of a diode and RC filter. Demodulates AM when µ ≤ 1. Requirement: 1/fc << RC << 1/fm. Simple but prone to negative peak clipping if RC is too large.",
+  "am": "AM (Amplitude Modulation) varies the carrier amplitude proportionally to the message signal m(t). Signal: φ(t) = [Ac + m(t)]cos(ωct). µ = mp/Ac. Bandwidth = 2fm. Total power Pt = Pc(1 + µ²/2).",
+  "fm": "FM varies carrier frequency: fi(t) = fc + kf·m(t). Demodulated using Slope Detection (Differentiator + Envelope Detector) or Limiter-Discriminator methods. BW ≈ 2(Δf + fm). Increasing Δf improves SNR but requires more bandwidth.",
+  "dsb": "DSB-SC (Double Sideband Suppressed Carrier) φ(t) = m(t)cos(ωct). Saves carrier power but requires coherent detection using carrier recovery (PLL/Costas loop). BW = 2fm.",
+  "modulation": "Modulation shifts baseband signals to high frequency for efficient antenna radiation (size ∝ λ/4), allows FDM, and improves noise performance. Non-linear, switching, and ring modulators are used for generation.",
   "noise": "Communication noise includes Thermal (N = kTB) and Shot noise. Noise figure F = SNR_in / SNR_out. Noise power depends on bandwidth (No = NB).",
   "pll": "PLL is a feedback system locking VCO to input phase. Key formulas: Steady-state error θe = arcsin(Δω/KvKd). Loop Gain K = Kd·Kv. Used for FM demodulation and carrier recovery.",
   "snr": "SNR = Signal Power / Noise Power (So/No). Noise is modeled as AWGN with constant PSD (No = N×B). In DSB-SC, the output SNR is approx. equal to input SNR. Increasing bandwidth increases noise power, which can degrade SNR.",
   "fourier": "Fourier Transform X(ω) = ∫x(t)e^(-jωt)dt converts time signals to frequency domain. Key for spectral analysis of AM/FM signals and calculating bandwidth.",
   "bandwidth": "Bandwidth is the spectrum width needed. AM/DSB: 2fm. SSB: fm. FM: 2(Δf + fm). Larger BW allows faster data but collects more noise.",
-  "envelope": "Envelope detector consists of a diode and RC filter. Demodulates AM when µ ≤ 1. Requirement: 1/fc << RC << 1/fm. Simple but effective for AM.",
-  "superheterodyne": "Superheterodyne receiver converts incoming RF to a fixed intermediate frequency (IF) before demodulation. RF Amp → Mixer → IF Amp → Demodulator.",
-  "help": "I can answer questions about: AM, FM, DSB, SSB, SNR, Noise, PLL, Fourier, Bandwidth, and receivers. Just type a keyword to learn more!",
+  "help": "I can answer questions about: AM, FM, DSB, SSB, QAM, VSB, Hilbert, PLL, Noise, SNR, Fourier, and receivers. Just type a keyword to learn more!",
 };
 
 function findResponse(input: string): string {
   const lower = input.toLowerCase();
-  for (const [key, value] of Object.entries(faqResponses)) {
-    if (lower.includes(key)) return value;
+  
+  // Sort keys by length descending to find the most specific match first (e.g., 'qam' before 'am')
+  const keys = Object.keys(faqResponses).sort((a, b) => b.length - a.length);
+  
+  for (const key of keys) {
+    if (lower.includes(key)) return faqResponses[key];
   }
   if (lower.includes("hello") || lower.includes("hi") || lower.includes("hey")) {
     return "Hi there! 👋 I'm your Analog Communication assistant. Ask me about AM, FM, DSB-SC, SSB, noise, PLL, or any topic covered in this course!";
