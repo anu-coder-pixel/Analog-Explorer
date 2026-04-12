@@ -15,12 +15,18 @@ const chapterDescriptions: Record<string, string> = {
 };
 
 const quickRevisionCards = [
-  { emoji: "📡", title: "AM Bandwidth", fact: "BW = 2B (twice message bandwidth)" },
-  { emoji: "📻", title: "FM Bandwidth", fact: "BW ≈ 2(Δf + B) — Carson's Rule" },
-  { emoji: "⚡", title: "AM Power", fact: "η = μ² / (2 + μ²) × 100%" },
-  { emoji: "🔊", title: "Modulation Index", fact: "μ = m_peak / A (AM), β = Δf / fm (FM)" },
-  { emoji: "🎯", title: "Shannon Capacity", fact: "C = B log₂(1 + SNR)" },
-  { emoji: "🌡️", title: "Thermal Noise", fact: "N = kTB (k = 1.38×10⁻²³ J/K)" },
+  { emoji: "📡", title: "AM Signal", fact: "s(t) = Ac[1 + μm(t)]cos(ωct)" },
+  { emoji: "📡", title: "AM Modulation Index", fact: "μ = Am / Ac" },
+  { emoji: "📡", title: "AM Bandwidth", fact: "BW = 2fm" },
+  { emoji: "📡", title: "AM Total Power", fact: "Pt = Pc(1 + μ²/2)" },
+  { emoji: "📡", title: "AM Efficiency", fact: "η = μ² / (2 + μ²) × 100%" },
+  { emoji: "📻", title: "FM Signal", fact: "s(t) = Ac·cos(ωct + kf∫m(t)dt)" },
+  { emoji: "📻", title: "FM Frequency Deviation", fact: "Δf = kf·Am" },
+  { emoji: "📻", title: "FM Modulation Index", fact: "β = Δf / fm" },
+  { emoji: "📻", title: "FM Bandwidth (Carson)", fact: "BW ≈ 2(Δf + fm)" },
+  { emoji: "🔊", title: "SNR", fact: "SNR = S / N" },
+  { emoji: "🔊", title: "Thermal Noise Power", fact: "N = kTB" },
+  { emoji: "🔊", title: "SNR in dB", fact: "SNR_dB = 10·log₁₀(S/N)" },
 ];
 
 export function Dashboard({ onSelectTopic }: DashboardProps) {
@@ -42,8 +48,7 @@ export function Dashboard({ onSelectTopic }: DashboardProps) {
             </h1>
           </div>
           <p className="text-muted-foreground text-sm md:text-base max-w-3xl leading-relaxed">
-            Based on <strong>Lathi & Ding — Modern Digital and Analog Communication Systems (4th Ed.)</strong>.
-            Interactive simulations, circuit diagrams, equations and AI-assisted problem solving — for every chapter.
+            Explore concepts in analog and digital communication through interactive simulations, visual diagrams, and easy-to-understand explanations.
           </p>
         </div>
       </div>
