@@ -2317,8 +2317,34 @@ const noiseTopics: TopicData[] = [
       ],
     },
     blockDiagram: { description: "Performance comparison block.", svgLabel: "SNR Comparison", blocks: [{ label: "Input SNR", x: 20, y: 60, w: 100, h: 40 }, { label: "Demodulator", x: 170, y: 60, w: 110, h: 40 }, { label: "Output SNR", x: 330, y: 60, w: 100, h: 40 }], arrows: [{ from: 0, to: 1 }, { from: 1, to: 2 }] },
-    circuitDiagram: { description: "Conceptual analysis.", svgLabel: "N/A", elements: ["Mathematical analysis — no circuit."] },
-    numericals: [{ id: "snr-1", title: "FM Advantage Calculation", difficulty: "Medium", given: "β = 5, fm = 15 kHz", formula: "Improvement = 3β²(β+1)", steps: ["= 3 × 25 × 6", "= 450", "= 26.5 dB improvement over AM"], answer: "FM is 26.5 dB better than AM" }],
+    numericals: [
+      {
+        id: "snr-1",
+        title: "Basic SNR Calculation",
+        difficulty: "Easy",
+        given: "Signal power Sₒ = 10 W, Noise power Nₒ = 2 W",
+        formula: "SNR = Sₒ / Nₒ",
+        steps: [
+          "SNR = Sₒ / Nₒ",
+          "SNR = 10 / 2",
+          "SNR = 5",
+        ],
+        answer: "SNR = 5",
+      },
+      {
+        id: "snr-2",
+        title: "Noise Power Calculation",
+        difficulty: "Easy",
+        given: "Noise PSD N = 10⁻⁶ W/Hz, Bandwidth B = 5 kHz",
+        formula: "Nₒ = N × B",
+        steps: [
+          "Nₒ = N × B",
+          "Nₒ = 10⁻⁶ × 5000",
+          "Nₒ = 5 × 10⁻³ W",
+        ],
+        answer: "Nₒ = 5 × 10⁻³ W",
+      },
+    ],
   },
 ];
 
