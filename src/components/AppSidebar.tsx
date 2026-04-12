@@ -75,7 +75,7 @@ export function AppSidebar({ selectedTopicId, onSelectTopic }: SidebarProps) {
               <div 
                 className={cn(
                   "overflow-hidden transition-all duration-300 ease-in-out",
-                  openCategories[cat.name] ? "max-h-96 opacity-100 mt-1" : "max-h-0 opacity-0"
+                  openCategories[cat.name] ? "max-h-[2000px] opacity-100 mt-1" : "max-h-0 opacity-0"
                 )}
               >
                 <div className="ml-4 space-y-1 relative before:absolute before:inset-y-0 before:left-[11px] before:w-[1px] before:bg-border">
