@@ -35,7 +35,7 @@ export interface TopicData {
     elements: string[];
   };
   simulation?: {
-    type: "am" | "fm" | "pm" | "dsb" | "ssb" | "generic";
+    type: "am" | "fm" | "pm" | "dsb" | "ssb" | "pll" | "generic";
     description: string;
     parameters: { name: string; default: number; min: number; max: number; step: number }[];
   };
@@ -1389,52 +1389,54 @@ const topics_core: TopicData[] = [
       ],
     },
     simulation: {
-      type: "fm",
-      description: "Visualize PLL tracking of an FM signal.",
+      type: "pll",
+      description: "Visualize PLL locking onto an FM signal frequency.",
       parameters: [
-        { name: "Free-running Freq (Hz)", default: 50, min: 20, max: 200, step: 5 },
-        { name: "Input Freq Offset (Hz)", default: 5, min: 0, max: 20, step: 1 },
+        { name: "Lock State (0=Off, 1=On)", default: 1, min: 0, max: 1, step: 1 },
+        { name: "Center Freq (Hz)", default: 50, min: 20, max: 200, step: 5 },
+        { name: "Message Freq (Hz)", default: 3, min: 1, max: 15, step: 1 },
       ],
     },
     numericals: [
       {
         id: "pll-1",
-        title: "Steady-State Phase Error (1st order)",
-        difficulty: "Easy",
-        given: "Frequency step Δω = 100 rad/s, loop gain AK = 1000",
-        formula: "θ_e(∞) = Δω / AK",
+        title: "Steady-State Phase Error",
+        difficulty: "Medium",
+        given: "Kv = 10⁴ rad/s/V, Kd = 2 V/rad, Δω = 2000 rad/s",
+        formula: "Δω = Kv · Kd · sin(θe)",
         steps: [
-          "θ_e(∞) = 100 / 1000 = 0.1 rad",
-          "= 0.1 × (180/π) = 5.73°",
+          "1. Use relation: Δω = Kv · eo, where eo = Kd · sin(θe)",
+          "2. Substitute: Δω = Kv · Kd · sin(θe)",
+          "3. Solve for sin(θe): sin(θe) = 2000 / (10⁴ · 2) = 2000 / 20000 = 0.1",
+          "4. θe = arcsin(0.1) ≈ 0.1002 radians",
         ],
-        answer: "Steady-state phase error = 5.73°",
+        answer: "θe ≈ 0.1002 radians",
       },
       {
         id: "pll-2",
-        title: "Lock Range Calculation",
-        difficulty: "Medium",
-        given: "VCO gain K₀ = 2π×10⁴ rad/s/V, Phase detector gain Kd = 0.5 V/rad, H(0) = 1",
-        formula: "Lock range ΔωL = K₀ × Kd × H(0)",
+        title: "VCO Control Voltage",
+        difficulty: "Easy",
+        given: "fc = 5 MHz, Kv = 50 kHz/V, Δf = 10 kHz",
+        formula: "Δf = Kv · eo",
         steps: [
-          "ΔωL = 2π×10⁴ × 0.5 × 1",
-          "= π × 10⁴ rad/s",
-          "Δf_L = 10⁴/2 = 5 kHz",
+          "1. The relation between freq deviation and control voltage: Δf = Kv · eo",
+          "2. Rearrange for eo: eo = Δf / Kv",
+          "3. substitute: eo = 10 kHz / 50 kHz/V = 0.2 Volts",
         ],
-        answer: "Lock range = ±5 kHz",
+        answer: "eo = 0.2 Volts",
       },
       {
         id: "pll-3",
-        title: "Second-Order PLL Zero Error",
+        title: "Loop Gain and Stability",
         difficulty: "Hard",
-        given: "H(s) = (s+a)/s, frequency step Δω applied",
-        formula: "θ_e(∞) = lim s→0 [s² / (s² + AK(s+a))] × Δω/s²",
+        given: "Kd = 1 V/rad, Kv = 2000 rad/s/V, Filter cutoff = 500 rad/s, Signal freq = 100 rad/s",
+        formula: "K = Kd · Kv",
         steps: [
-          "Θ_e(s) = s / (s + AKH(s)) × Δω/s",
-          "= Δω / (s + AK(s+a)/s)",
-          "= Δω·s / (s² + AKs + AKa)",
-          "lim t→∞: θ_e = lim s→0 sΘ_e(s) = 0",
+          "1. Loop Gain (K): K = Kd · Kv = 1 × 2000 = 2000 rad/s",
+          "2. Compare loop bandwidth with signal frequency: Loop BW = 500 rad/s, ωm = 100 rad/s",
+          "3. Since 500 > 100, the loop can effectively track the input phase variation.",
         ],
-        answer: "Steady-state phase error = 0 (perfect tracking)",
+        answer: "K = 2000 rad/s; System can track effectively.",
       },
     ],
   },

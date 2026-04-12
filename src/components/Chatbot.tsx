@@ -7,19 +7,19 @@ interface Message {
 }
 
 const faqResponses: Record<string, string> = {
-  "am": "AM (Amplitude Modulation) varies the carrier amplitude proportional to the message signal. The AM signal is φ(t) = [A + m(t)]cos(ωct). Modulation index μ = m_peak/A. Bandwidth = 2B.",
-  "fm": "FM (Frequency Modulation) varies the carrier frequency. The FM signal has instantaneous frequency ωi = ωc + kf·m(t). Bandwidth ≈ 2(Δf + B) by Carson's rule. FM is more noise-resistant than AM.",
-  "modulation": "Modulation shifts baseband signals to higher frequencies for efficient antenna radiation, allows FDM (frequency division multiplexing), and improves noise immunity. Types: AM, FM, PM.",
-  "dsb": "DSB-SC (Double Sideband Suppressed Carrier) is φ(t) = m(t)cos(ωct). It has no carrier component, requires coherent demodulation, and has bandwidth = 2B.",
-  "ssb": "SSB (Single Sideband) transmits only one sideband (USB or LSB), saving 50% bandwidth. BW = B. Generated using Hilbert transform or filter method.",
-  "noise": "In communication, noise degrades signal quality. Thermal noise N = kTB. Noise figure F = SNR_in/SNR_out. FM has 3β²(β+1) SNR advantage over AM.",
-  "pll": "PLL (Phase Locked Loop) locks the VCO to the input signal phase. Used for carrier recovery, FM demodulation, and frequency synthesis. Components: phase detector, loop filter, VCO.",
-  "snr": "SNR (Signal-to-Noise Ratio) = Signal Power / Noise Power. For AM: SNR = μ²Pc/(2N₀B). FM advantage: SNR_FM/SNR_AM = 3β²(β+1).",
-  "fourier": "The Fourier Transform decomposes signals into frequency components: X(ω) = ∫x(t)e^(-jωt)dt. Key properties: linearity, time shifting, convolution theorem, Parseval's theorem.",
-  "bandwidth": "Bandwidth is the range of frequencies occupied by a signal. AM: BW = 2B. DSB-SC: BW = 2B. SSB: BW = B. FM: BW ≈ 2(Δf + B).",
-  "envelope": "Envelope detector uses a diode + RC filter. Condition: 1/fc << RC << 1/(2πB). For tone modulation: RC ≤ √(1-μ²)/(μωm). Simplest AM demodulator.",
-  "superheterodyne": "Superheterodyne receiver converts RF to a fixed IF frequency. Stages: RF amp → Mixer → IF amp → Demodulator. IF typically 455 kHz (AM) or 10.7 MHz (FM).",
-  "help": "I can answer questions about: AM, FM, DSB-SC, SSB, Modulation, Noise, PLL, SNR, Fourier Transform, Bandwidth, Envelope Detector, Superheterodyne Receiver. Just type a keyword!",
+  "am": "AM (Amplitude Modulation) varies the carrier amplitude proportionally to the message signal m(t). Signal: φ(t) = [Ac + m(t)]cos(ωct). µ = mp/Ac. Bandwidth = 2fm. Total power Pt = Pc(1 + µ²/2).",
+  "fm": "FM (Frequency Modulation) varies carrier frequency: fi(t) = fc + kf·m(t). Bandwidth ≈ 2(Δf + fm) (Carson's Rule). FM has superior noise immunity; SNR gain over AM is 3β²/(1 + β).",
+  "modulation": "Modulation shifts baseband signals to high frequency for efficient antenna radiation (size ∝ λ/4), allows FDM, and improves noise performance. Non-linear, switching, and ring modulators are used for generation.",
+  "dsb": "DSB-SC (Double Sideband Suppressed Carrier) φ(t) = m(t)cos(ωct). Saves carrier power but requires coherent detection using carrier recovery (PLL/Costas loop). BW = 2fm.",
+  "ssb": "SSB (Single Sideband) transmits only one sideband (USB/LSB). BW = fm (saves 50% BW). Generated using phase shift (Hilbert transform) or selective filtering methods.",
+  "noise": "Communication noise includes Thermal (N = kTB) and Shot noise. Noise figure F = SNR_in / SNR_out. Friis formula calculates total noise in cascaded systems.",
+  "pll": "PLL is a feedback system locking VCO to input phase. Key formulas: Steady-state error θe = arcsin(Δω/KvKd). Loop Gain K = Kd·Kv. Used for FM demodulation and carrier recovery.",
+  "snr": "SNR = Signal Power / Noise Power. SNR(dB) = 10log10(S/N). For FM systems, increasing bandwidth improves SNR at the cost of more noise (N ∝ B).",
+  "fourier": "Fourier Transform X(ω) = ∫x(t)e^(-jωt)dt converts time signals to frequency domain. Key for spectral analysis of AM/FM signals and calculating bandwidth.",
+  "bandwidth": "Bandwidth is the spectrum width needed. AM/DSB: 2fm. SSB: fm. FM: 2(Δf + fm). Larger BW allows faster data but collects more noise.",
+  "envelope": "Envelope detector consists of a diode and RC filter. Demodulates AM when µ ≤ 1. Requirement: 1/fc << RC << 1/fm. Simple but effective for AM.",
+  "superheterodyne": "Superheterodyne receiver converts incoming RF to a fixed intermediate frequency (IF) before demodulation. RF Amp → Mixer → IF Amp → Demodulator.",
+  "help": "I can answer questions about: AM, FM, DSB, SSB, SNR, Noise, PLL, Fourier, Bandwidth, and receivers. Just type a keyword to learn more!",
 };
 
 function findResponse(input: string): string {

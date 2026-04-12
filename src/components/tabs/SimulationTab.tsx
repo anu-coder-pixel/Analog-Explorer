@@ -89,6 +89,37 @@ export function SimulationTab({ simulation }: Props) {
         (t) => Math.cos(2 * Math.PI * fc * t * 4 + beta * Math.sin(2 * Math.PI * fm * t * 4)),
         "hsl(262 83% 58%)", h * 0.7, h * 0.22, "FM Signal"
       );
+    } else if (type === "pll") {
+      const lockState = paramValues[0] ?? 1; // 0 = off, 1 = on
+      const fc = paramValues[1] ?? 50;
+      const fm = paramValues[2] ?? 3;
+      
+      // Message m(t) - Green
+      drawWave((t) => Math.cos(2 * Math.PI * fm * t * 4), "hsl(142 76% 36%)", h * 0.15, h * 0.1, "Message m(t)");
+      
+      // FM Input - Purple
+      const fmInput = (t: number) => Math.cos(2 * Math.PI * fc * t * 4 + 3 * Math.sin(2 * Math.PI * fm * t * 4));
+      drawWave(fmInput, "hsl(262 83% 58%)", h * 0.4, h * 0.1, "FM Input");
+      
+      // VCO Output - Yellow
+      // Before lock: slightly different frequency. After lock: matches FM input.
+      const vcoOut = (t: number) => {
+        if (lockState < 0.5) {
+          return Math.cos(2 * Math.PI * (fc * 0.9) * t * 4); // Off-frequency
+        }
+        return Math.cos(2 * Math.PI * fc * t * 4 + 3 * Math.sin(2 * Math.PI * fm * t * 4)); // Locked
+      };
+      drawWave(vcoOut, "hsl(38 92% 50%)", h * 0.65, h * 0.1, "VCO Output");
+      
+      // Demodulated Output - Red
+      const demodOut = (t: number) => {
+        if (lockState < 0.5) {
+          return 0.2 * Math.sin(2 * Math.PI * fc * 5 * t * 4); // High frequency noise/error
+        }
+        return Math.cos(2 * Math.PI * fm * t * 4); // Recovered message
+      };
+      drawWave(demodOut, "hsl(0 84% 60%)", h * 0.9, h * 0.08, "Demodulated Output");
+
     } else if (type === "pm") {
       const kp = paramValues[0] ?? 2;
       const fc = paramValues[1] ?? 50;
