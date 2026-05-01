@@ -5,6 +5,7 @@ import { BlockDiagramTab } from "./tabs/BlockDiagramTab";
 import { CircuitDiagramTab } from "./tabs/CircuitDiagramTab";
 import { SimulationTab } from "./tabs/SimulationTab";
 import { NumericalsTab } from "./tabs/NumericalsTab";
+import { ExperimentTab } from "./tabs/ExperimentTab";
 import { cn } from "@/lib/utils";
 import { BookOpen, LayoutGrid, Cpu, Activity, Calculator } from "lucide-react";
 
@@ -14,6 +15,7 @@ const tabs = [
   { id: "circuit", label: "Circuit Diagram", icon: Cpu },
   { id: "simulation", label: "Simulation", icon: Activity },
   { id: "numericals", label: "Numericals", icon: Calculator },
+  { id: "experiment", label: "Experiment", icon: BookOpen },
 ];
 
 interface Props {
@@ -21,7 +23,7 @@ interface Props {
 }
 
 export function TopicContent({ topic }: Props) {
-  const [activeTab, setActiveTab] = useState("theory");
+  const [activeTab, setActiveTab] = useState(topic.experiment ? "experiment" : "theory");
 
   return (
     <div className="animate-fade-in bg-card border border-border rounded-2xl p-6 md:p-10 shadow-lg">
@@ -38,6 +40,7 @@ export function TopicContent({ topic }: Props) {
           if (tab.id === "simulation" && !topic.simulation) return false;
           if (tab.id === "circuit" && !topic.circuitDiagram) return false;
           if (tab.id === "numericals" && (!topic.numericals || topic.numericals.length === 0)) return false;
+          if (tab.id === "experiment" && !topic.experiment) return false;
           return true;
         }).map((tab) => {
           const Icon = tab.icon;
@@ -64,9 +67,10 @@ export function TopicContent({ topic }: Props) {
       <div className="animate-fade-in rounded-2xl">
         {activeTab === "theory" && <TheoryTab theory={topic.theory} />}
         {activeTab === "block" && <BlockDiagramTab diagram={topic.blockDiagram} />}
-        {activeTab === "circuit" && <CircuitDiagramTab diagram={topic.circuitDiagram} />}
+        {activeTab === "circuit" && <CircuitDiagramTab diagram={topic.circuitDiagram} topicId={topic.id} />}
         {activeTab === "simulation" && <SimulationTab simulation={topic.simulation} />}
         {activeTab === "numericals" && <NumericalsTab numericals={topic.numericals} />}
+        {activeTab === "experiment" && topic.experiment && <ExperimentTab experiment={topic.experiment} />}
       </div>
     </div>
   );

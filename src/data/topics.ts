@@ -40,6 +40,14 @@ export interface TopicData {
     parameters: { name: string; default: number; min: number; max: number; step: number }[];
   };
   numericals?: NumericalProblem[];
+  experiment?: {
+    aim: string;
+    apparatus: string[];
+    componentsRequired: string[];
+    observations: string[];
+    conclusion: string;
+    image?: string;
+  };
 }
 
 // ============================================================
@@ -83,24 +91,30 @@ const topics_core: TopicData[] = [
       ],
     },
     circuitDiagram: {
-      image: "am.png",   // ✅ ADD THIS
-
-      description: "AM can be generated using a switching modulator...",
-      svgLabel: "AM Generator Circuit",
+      image: "am.png",
+      description: "Premium Transistor AM Modulator using emitter modulation and voltage-divider biasing.",
+      svgLabel: "Transistor AM Generator Circuit",
       elements: [
-        "Message source m(t) connected to transformer primary",
-        "Carrier cos(ωc·t) drives switching diodes D1, D2",
-        "Bandpass filter tuned to ωc at output",
-        "Output: AM signal φ_AM(t)",
+        "Vcc - DC power supply rail",
+        "R1, R2 - Voltage divider for transistor base biasing",
+        "Cin - Carrier signal coupling capacitor",
+        "RE, CE - Emitter stabilization resistor and bypass capacitor",
+        "Signal - Baseband message signal injected at the emitter",
+        "CC - Modulated output coupling capacitor",
+        "Vmod - Amplitude modulated output signal",
       ],
     },
     simulation: {
       type: "am",
-      description: "Visualize AM waveform with adjustable modulation index and carrier frequency.",
+      description: "Realistic Transistor AM Modulator simulation. Adjust component levels (Vcc, Bias) to see their effect on the AM envelope and signal-to-noise ratio (SNR).",
       parameters: [
-        { name: "Modulation Index (μ)", default: 0.5, min: 0, max: 1, step: 0.05 },
+        { name: "Supply (Vcc)", default: 12, min: 5, max: 24, step: 0.5 },
+        { name: "R1/R2 Bias Level", default: 0.5, min: 0.1, max: 0.9, step: 0.05 },
+        { name: "Message Amp (Vm)", default: 3, min: 0, max: 10, step: 0.2 },
+        { name: "Carrier Amp (Vc)", default: 5, min: 1, max: 15, step: 0.5 },
         { name: "Carrier Freq (Hz)", default: 50, min: 10, max: 200, step: 5 },
         { name: "Message Freq (Hz)", default: 5, min: 1, max: 20, step: 1 },
+        { name: "Channel Noise", default: 0.05, min: 0, max: 0.5, step: 0.01 },
       ],
     },
     numericals: [
@@ -194,19 +208,22 @@ const topics_core: TopicData[] = [
       description: "Two diodes (or transistors) operating in their non-linear region, driven by carrier and message signals.",
       svgLabel: "Non-Linear Modulator Circuit",
       elements: [
-        "Two matched diodes D1 and D2",
-        "Input transformer coupling m(t)",
-        "Carrier injection cos(ωc·t)",
-        "Subtractor circuit at output",
-        "Bandpass filter centered at ωc",
+        "Summer network (m(t) + c(t))",
+        "Non-linear device (Diode D1)",
+        "Biasing resistor R_load",
+        "Bandpass Filter (LC Tank L1, C1) at fc",
       ],
     },
     simulation: {
-      type: "dsb",
-      description: "Visualize DSB-SC output from a non-linear modulator.",
+      type: "nonlinear",
+      description: "Realistic Square-Law Modulator simulation. Adjust the Linear (a1) and Square (a2) coefficients to see how non-linearity generates the AM signal.",
       parameters: [
-        { name: "Message Freq (Hz)", default: 5, min: 1, max: 20, step: 1 },
-        { name: "Carrier Freq (Hz)", default: 50, min: 20, max: 200, step: 5 },
+        { name: "Linear Gain (a1)", default: 1.0, min: 0.1, max: 2.0, step: 0.1 },
+        { name: "Square Coeff (a2)", default: 0.5, min: 0.1, max: 1.5, step: 0.05 },
+        { name: "BPF Q-Factor", default: 10, min: 1, max: 50, step: 1 },
+        { name: "Carrier Amp", default: 5, min: 1, max: 10, step: 0.5 },
+        { name: "Message Amp", default: 3, min: 1, max: 10, step: 0.5 },
+        { name: "Channel Noise", default: 0.05, min: 0, max: 0.5, step: 0.01 },
       ],
     },
     numericals: [
@@ -254,103 +271,6 @@ const topics_core: TopicData[] = [
     ],
   },
 
-  // ─── 3. SWITCHING MODULATOR ───
-  {
-    id: "switching-modulator",
-    title: "Switching Modulator",
-    category: "Amplitude Modulation",
-    theory: {
-      points: [
-        "The carrier signal acts as a periodic switch, represented by a periodic square wave w(t) with Fourier series expansion.",
-        "The switching function w(t) = ½ + (2/π)cos(ωc·t) - (2/3π)cos(3ωc·t) + ...",
-        "The product m(t)·w(t) contains m(t)·cos(ωc·t) as a component, which when bandpass filtered gives DSB-SC.",
-        "This approach avoids the need for an analog multiplier — only a switch (diode) is required.",
-      ],
-      formulas: [
-        { label: "Switching function", expression: "w(t) = \\frac{1}{2} + \\frac{2}{\\pi}\\cos(\\omega_c t) - \\frac{2}{3\\pi}\\cos(3\\omega_c t) + \\cdots" },
-        { label: "Output (filtered)", expression: "\\varphi(t) = \\frac{2}{\\pi} m(t) \\cos(\\omega_c t)" },
-      ],
-    },
-    blockDiagram: {
-      description: "Message m(t) is multiplied by switching function w(t), then bandpass filtered.",
-      svgLabel: "Switching Modulator Block Diagram",
-      blocks: [
-        { label: "m(t)", x: 20, y: 60, w: 80, h: 40 },
-        { label: "× Switch", x: 160, y: 60, w: 110, h: 40 },
-        { label: "w(t) from carrier", x: 160, y: 140, w: 140, h: 40 },
-        { label: "BPF at ωc", x: 330, y: 60, w: 110, h: 40 },
-        { label: "DSB-SC", x: 490, y: 60, w: 100, h: 40 },
-      ],
-      arrows: [
-        { from: 0, to: 1 },
-        { from: 2, to: 1 },
-        { from: 1, to: 3 },
-        { from: 3, to: 4 },
-      ],
-    },
-    circuitDiagram: {
-      image: "switching.jpeg",
-      description: "A diode switching circuit where the carrier switches the diode ON/OFF, modulating the message signal.",
-      svgLabel: "Switching Modulator Circuit",
-      elements: [
-        "Diode D1 as switch",
-        "Message signal input through resistor",
-        "Carrier cos(ωc·t) drives the diode",
-        "Bandpass filter at output tuned to ωc",
-      ],
-    },
-    simulation: {
-      type: "dsb",
-      description: "Visualize switching modulator output (DSB-SC).",
-      parameters: [
-        { name: "Message Freq (Hz)", default: 5, min: 1, max: 20, step: 1 },
-        { name: "Carrier Freq (Hz)", default: 50, min: 20, max: 200, step: 5 },
-      ],
-    },
-    numericals: [
-      {
-        id: "sw-1",
-        title: "Output Amplitude of Switching Modulator",
-        difficulty: "Easy",
-        given: "m(t) = 5cos(2π×1000t), carrier frequency fc = 100 kHz",
-        formula: "Output = (2/π) × m(t) × cos(ωc·t)",
-        steps: [
-          "Output amplitude = (2/π) × 5",
-          "= 10/π",
-          "≈ 3.18 V",
-        ],
-        answer: "Peak output amplitude ≈ 3.18 V",
-      },
-      {
-        id: "sw-2",
-        title: "Bandwidth of Switching Modulator Output",
-        difficulty: "Medium",
-        given: "Message bandwidth B = 5 kHz, carrier frequency fc = 500 kHz",
-        formula: "BW_DSB = 2B",
-        steps: [
-          "DSB-SC occupies frequencies from (fc - B) to (fc + B)",
-          "BW = 2 × B = 2 × 5 kHz",
-          "BW = 10 kHz",
-          "Signal occupies 495 kHz to 505 kHz",
-        ],
-        answer: "Bandwidth = 10 kHz (495–505 kHz)",
-      },
-      {
-        id: "sw-3",
-        title: "Power in Switching Modulator Output",
-        difficulty: "Hard",
-        given: "m(t) = 4cos(ωm·t), R = 50Ω",
-        formula: "P = (2/π)² × m²_rms / R",
-        steps: [
-          "Output peak = (2/π) × 4 = 8/π V",
-          "RMS of DSB-SC = (8/π) / (2√2) = 4/(π√2)",
-          "P = [4/(π√2)]² / 50",
-          "P ≈ 0.081 W = 81 mW",
-        ],
-        answer: "Output power ≈ 81 mW (into 50Ω)",
-      },
-    ],
-  },
 
   // ─── 4. RING MODULATOR ───
   {
@@ -398,11 +318,16 @@ const topics_core: TopicData[] = [
       ],
     },
     simulation: {
-      type: "dsb",
-      description: "Visualize ring modulator DSB-SC waveform.",
+      type: "ring",
+      description: "Realistic Ring Modulator simulation. Adjust Diode Matching and Transformer Balance to see how non-ideal components affect carrier suppression.",
       parameters: [
-        { name: "Message Freq (Hz)", default: 5, min: 1, max: 20, step: 1 },
-        { name: "Carrier Freq (Hz)", default: 50, min: 20, max: 200, step: 5 },
+        { name: "Diode Matching", default: 0.95, min: 0.5, max: 1.0, step: 0.01 },
+        { name: "Transf. Balance", default: 1.0, min: 0.8, max: 1.0, step: 0.01 },
+        { name: "Carrier Drive", default: 5, min: 2, max: 10, step: 0.5 },
+        { name: "Message Amp", default: 3, min: 1, max: 8, step: 0.5 },
+        { name: "Carrier Freq", default: 60, min: 20, max: 200, step: 5 },
+        { name: "Message Freq", default: 5, min: 1, max: 20, step: 1 },
+        { name: "Channel Noise", default: 0.02, min: 0, max: 0.5, step: 0.01 },
       ],
     },
     numericals: [
@@ -485,22 +410,25 @@ const topics_core: TopicData[] = [
     },
     circuitDiagram: {
       image: "freq_mixer.jpeg",
-      description: "Any modulator circuit (switching, ring, etc.) can serve as a mixer by replacing the carrier with the local oscillator signal.",
+      description: "Premium Frequency Mixer circuit with specialized RF, LO, and IF stages.",
       svgLabel: "Frequency Mixer Circuit",
       elements: [
-        "Input signal at carrier ωc",
-        "Local oscillator at ωmix",
-        "Diode or transistor mixer stage",
-        "IF bandpass filter at output",
+        "RF Input - Modulated signal at carrier frequency ωc",
+        "Local Oscillator (LO) - Frequency ωmix for translation",
+        "Mixer Stage - Multiplier for frequency conversion",
+        "IF Bandpass Filter - Tuned to extract intermediate frequency ωI",
+        "IF Output - Signalized output at new frequency",
       ],
     },
     simulation: {
-      type: "am",
-      description: "Visualize frequency translation of a signal.",
+      type: "mixer",
       parameters: [
-        { name: "Message Freq (Hz)", default: 5, min: 1, max: 20, step: 1 },
-        { name: "Original Carrier (Hz)", default: 80, min: 30, max: 200, step: 5 },
-        { name: "New IF (Hz)", default: 30, min: 10, max: 100, step: 5 },
+        { name: "Conversion Gain", default: 1.0, min: 0.1, max: 2.0, step: 0.1 },
+        { name: "LO Drive Level", default: 7, min: 2, max: 15, step: 0.5 },
+        { name: "IF Filter Q", default: 15, min: 1, max: 50, step: 1 },
+        { name: "Original Carrier", default: 80, min: 30, max: 200, step: 5 },
+        { name: "Message Freq", default: 5, min: 1, max: 20, step: 1 },
+        { name: "Channel Noise", default: 0.05, min: 0, max: 0.5, step: 0.01 },
       ],
     },
     numericals: [
@@ -585,21 +513,28 @@ const topics_core: TopicData[] = [
     },
     circuitDiagram: {
       image: "dsbsc.jpeg",
-      description: "An analog multiplier IC (like AD633) with m(t) and cos(ωc·t) as inputs.",
-      svgLabel: "DSB-SC Circuit",
+      description: "Premium Balanced Transistor Modulator using two matched NPN transistors in a push-pull configuration for carrier suppression.",
+      svgLabel: "Balanced Transistor Modulator Circuit",
       elements: [
-        "Analog multiplier IC",
-        "Message input m(t)",
-        "Carrier input cos(ωc·t)",
-        "Output proportional to m(t)×cos(ωc·t)",
+        "Modulating Signal - Input through center-tapped transformer T1",
+        "Carrier RF Signal - Injected through center-tap of the base transformer T2",
+        "Matched Transistors Q1, Q2 - Balanced transistor pair for carrier cancellation",
+        "Vcc - DC power supply connected to output center tap",
+        "Output Transformer T3 - Combines collector outputs into DSB-SC signal",
+        "LC Tuned Circuit - Parallel inductor L and variable capacitor C for harmonic selection",
+        "Modulated Output - Suppressed carrier double sideband signal",
       ],
     },
     simulation: {
       type: "dsb",
-      description: "Visualize DSB-SC waveform showing carrier suppression and double sidebands.",
+      description: "Realistic Balanced Transistor Modulator simulation. Adjust Transformer coupling and Tank Q to see carrier suppression effectiveness and SNR.",
       parameters: [
-        { name: "Message Freq (Hz)", default: 5, min: 1, max: 20, step: 1 },
-        { name: "Carrier Freq (Hz)", default: 50, min: 20, max: 200, step: 5 },
+        { name: "Supply (Vcc)", default: 12, min: 5, max: 24, step: 0.5 },
+        { name: "Transformer Coupling", default: 0.8, min: 0.1, max: 1.0, step: 0.05 },
+        { name: "LC Tank Q-Factor", default: 10, min: 1, max: 50, step: 1 },
+        { name: "Carrier Amp", default: 5, min: 1, max: 15, step: 0.5 },
+        { name: "Message Amp", default: 3, min: 1, max: 10, step: 0.5 },
+        { name: "Channel Noise", default: 0.05, min: 0, max: 0.5, step: 0.01 },
       ],
     },
     numericals: [
@@ -678,22 +613,28 @@ const topics_core: TopicData[] = [
     },
     circuitDiagram: {
       image: "demodam.jpeg",
-      description: "Envelope detector using a diode, capacitor, and resistor.",
-      svgLabel: "Envelope Detector Circuit",
+      description: "Premium Amplified AM Demodulator featuring a diode detector stage followed by a BC548 transistor amplifier.",
+      svgLabel: "Amplified AM Detector Circuit",
       elements: [
-        "Diode D1 (half-wave rectifier)",
-        "Parallel RC network (C charges, R discharges)",
-        "RC time constant: 1/fc << RC << 1/(2πB)",
-        "Output follows envelope A + m(t)",
+        "AM Input - The modulated high-frequency carrier",
+        "D1 (1N4148) - Half-wave diode detector",
+        "R1, C1 - Low-pass RC filter to extract the envelope",
+        "T1 (BC548) - Common-emitter transistor amplifier",
+        "R3, R4 - Biasing and collector load resistors for the amplifier",
+        "C2, C3 - Input and output signal coupling capacitors",
+        "Message Wave Output - The amplified and recovered baseband signal",
       ],
     },
     simulation: {
-      type: "am",
-      description: "Visualize AM signal and its demodulated envelope.",
+      type: "demod",
+      description: "Realistic RC Envelope Detector simulation. Observe diagonal clipping and ripple by adjusting the RC Time Constant relative to the Message Frequency.",
       parameters: [
-        { name: "Modulation Index (μ)", default: 0.7, min: 0.1, max: 1, step: 0.05 },
-        { name: "Carrier Freq (Hz)", default: 50, min: 20, max: 200, step: 5 },
-        { name: "Message Freq (Hz)", default: 5, min: 1, max: 20, step: 1 },
+        { name: "Input AM Amp", default: 8, min: 2, max: 15, step: 0.5 },
+        { name: "RC Time Constant", default: 2.5, min: 0.1, max: 15, step: 0.2 },
+        { name: "Diode Drop (Vγ)", default: 0.7, min: 0.2, max: 1.2, step: 0.1 },
+        { name: "Carrier Freq", default: 60, min: 20, max: 200, step: 5 },
+        { name: "Message Freq", default: 5, min: 1, max: 20, step: 1 },
+        { name: "Channel Noise", default: 0.02, min: 0, max: 0.2, step: 0.01 },
       ],
     },
     numericals: [
@@ -778,13 +719,14 @@ const topics_core: TopicData[] = [
     },
     circuitDiagram: {
       image: "envelope_det.jpeg",
-      description: "Simple diode-RC envelope detector circuit.",
+      description: "Stylized Envelope Detector circuit with half-wave rectifier, RC smoothing, and LPF.",
       svgLabel: "Envelope Detector Circuit",
       elements: [
-        "Diode (1N4148 or similar)",
-        "Capacitor C in parallel with Resistor R",
-        "DC blocking capacitor at output",
-        "Output: recovered message m(t)",
+        "AM Input s(t) - The modulated carrier signal",
+        "Diode (D) - Half-wave rectifier for signal extraction",
+        "RC Smoothing (C and R) - Filter to remove high frequency carrier",
+        "Low Pass Filter - Final stage to recover the original message m(t)",
+        "Recovered Message m(t) - The baseband information signal",
       ],
     },
     simulation: {
@@ -881,21 +823,28 @@ const topics_core: TopicData[] = [
     },
     circuitDiagram: {
       image: "ssb.jpeg",
-      description: "SSB generator using selective filtering: DSB-SC modulator followed by a sharp-cutoff sideband filter.",
-      svgLabel: "SSB Filter Method Circuit",
+      description: "Ultra-Detailed Phase-Shift SSB Modulator using matched AD633 multipliers and LF351N wideband op-amp phase shifters.",
+      svgLabel: "Detailed Phase-Shift SSB Circuit",
       elements: [
-        "Balanced modulator for DSB-SC generation",
-        "Crystal or ceramic sideband filter",
-        "Filter passes USB (or LSB) only",
-        "Output: SSB signal",
+        "U1, U2 (AD633) - Precision analog multipliers for quadrature DSB-SC generation",
+        "U3 (LF351N) - Wideband Hilbert Transform stage with R9, R16, R17, and C11",
+        "Carrier Phase Network - R3, R8, C4, C8 providing 90° quadrature shift",
+        "Combiner Stage - U4 (Adder) and U5 (Subtractor) with R10-R15 resistors",
+        "Bypass/Coupling - Multiple capacitors (C3, C5, C6, etc.) for signal integrity",
+        "Switch - Master selector for Upper Sideband (USB) or Lower Sideband (LSB)",
       ],
     },
     simulation: {
       type: "ssb",
-      description: "Visualize SSB (USB) waveform compared to DSB.",
+      description: "Realistic Phase-Shift SSB Modulator simulation. Adjust Phase Error and Modulator Balance to see their effect on sideband cancellation and carrier suppression.",
       parameters: [
+        { name: "Phase Error (deg)", default: 0, min: 0, max: 45, step: 1 },
+        { name: "Modulator Balance", default: 1.0, min: 0.5, max: 1.0, step: 0.05 },
+        { name: "Carrier Amp (Vc)", default: 5, min: 1, max: 10, step: 0.5 },
+        { name: "Message Amp (Vm)", default: 3, min: 1, max: 10, step: 0.5 },
+        { name: "Carrier Freq (Hz)", default: 50, min: 10, max: 200, step: 5 },
         { name: "Message Freq (Hz)", default: 5, min: 1, max: 20, step: 1 },
-        { name: "Carrier Freq (Hz)", default: 50, min: 20, max: 200, step: 5 },
+        { name: "Channel Noise", default: 0.02, min: 0, max: 0.5, step: 0.01 },
       ],
     },
     numericals: [
@@ -974,19 +923,9 @@ const topics_core: TopicData[] = [
         { from: 1, to: 2 },
       ],
     },
-    circuitDiagram: {
-      description: "Practical Hilbert transformer approximated using all-pass filter networks.",
-      svgLabel: "Hilbert Transformer Circuit",
-      elements: [
-        "Cascade of all-pass filter sections",
-        "Each section provides ~90° phase shift over a band",
-        "Multiple sections for wideband coverage",
-        "Output approximates -π/2 phase shift",
-      ],
-    },
     simulation: {
-      type: "generic",
-      description: "Visualize a signal and its Hilbert transform (90° phase shift).",
+      type: "hilbert",
+      description: "Visualize a signal and its Hilbert transform (90° phase shift) to understand quadrature components.",
       parameters: [
         { name: "Signal Freq (Hz)", default: 5, min: 1, max: 20, step: 1 },
       ],
@@ -1085,12 +1024,14 @@ const topics_core: TopicData[] = [
       ],
     },
     simulation: {
-      type: "am",
-      description: "Visualize QAM with two independent message signals.",
+      type: "qam",
+      description: "Realistic QAM simulation. Adjust the Phase Error and Carrier Balance to see the cross-talk between I and Q channels.",
       parameters: [
-        { name: "Signal 1 Freq (Hz)", default: 3, min: 1, max: 15, step: 1 },
-        { name: "Signal 2 Freq (Hz)", default: 7, min: 1, max: 15, step: 1 },
-        { name: "Carrier Freq (Hz)", default: 50, min: 20, max: 200, step: 5 },
+        { name: "I-Channel Freq", default: 5, min: 1, max: 20, step: 1 },
+        { name: "Q-Channel Freq", default: 3, min: 1, max: 20, step: 1 },
+        { name: "Phase Error (deg)", default: 0, min: 0, max: 45, step: 5 },
+        { name: "Carrier Balance", default: 1.0, min: 0.5, max: 1.0, step: 0.05 },
+        { name: "Channel Noise", default: 0.02, min: 0, max: 0.5, step: 0.01 },
       ],
     },
     numericals: [
@@ -1172,22 +1113,27 @@ const topics_core: TopicData[] = [
       ],
     },
     circuitDiagram: {
-      image: "vsb.jpeg",
-      description: "VSB transmitter: DSB-SC generator followed by a sideband filter with gradual transition bandwidth.",
-      svgLabel: "VSB Circuit Diagram",
+      image: "vsb_realistic.png",
+      description: "Realistic VSB transmitter schematic: Balanced modulator with a high-order sideband shaping filter and power amp chain.",
+      svgLabel: "Realistic VSB Circuit",
       elements: [
-        "Balanced Modulator (DSB-SC)",
-        "Sideband Shaping Filter H(ω)",
-        "Coherent Detector at Receiver",
-        "Post-demodulation LPF H₀(ω)",
+        "Balanced Modulator (AD633 based)",
+        "Sideband Filter H(w) - Vestigial shaping",
+        "Linear Class AB Power Amplifier",
+        "Output Impedance Matching Network",
       ],
     },
     simulation: {
-      type: "am",
-      description: "Visualize VSB waveform — one sideband + vestige.",
+      type: "vsb",
+      description: "Realistic VSB simulation. Adjust the Sideband Ratio and Filter Roll-off to visualize the transition between DSB and SSB modulation.",
       parameters: [
-        { name: "Message Freq (Hz)", default: 5, min: 1, max: 20, step: 1 },
-        { name: "Carrier Freq (Hz)", default: 50, min: 20, max: 200, step: 5 },
+        { name: "Sideband Ratio", default: 0.25, min: 0.1, max: 1.0, step: 0.05 },
+        { name: "Filter Roll-off (Q)", default: 15, min: 5, max: 50, step: 1 },
+        { name: "Carrier Amp", default: 5, min: 1, max: 10, step: 0.5 },
+        { name: "Message Amp", default: 3, min: 1, max: 10, step: 0.5 },
+        { name: "Carrier Freq", default: 60, min: 30, max: 150, step: 5 },
+        { name: "Message Freq", default: 5, min: 1, max: 15, step: 1 },
+        { name: "Channel Noise", default: 0.02, min: 0, max: 0.2, step: 0.01 },
       ],
     },
     numericals: [
@@ -1221,106 +1167,6 @@ const topics_core: TopicData[] = [
     ],
   },
 
-  // ─── 13. CARRIER ACQUISITION ───
-  {
-    id: "carrier-acquisition",
-    title: "Carrier Acquisition",
-    category: "Amplitude Modulation",
-    theory: {
-      points: [
-        "Synchronous demodulation requires the receiver to regenerate a carrier exactly matching the transmitted carrier in frequency and phase.",
-        "A frequency error Δω in the local carrier causes the output m(t)cos(Δω·t), producing a beating effect — catastrophic distortion.",
-        "A phase error δ causes output attenuation: m(t)cos(δ), which reduces signal strength but doesn't distort.",
-        "Methods: (1) Pilot carrier transmission; (2) Squaring loop (for DSB-SC); (3) Costas loop; (4) Phase-locked loop (PLL).",
-      ],
-      formulas: [
-        { label: "Output with freq error", expression: "e_o(t) = m(t)\\cos(\\Delta\\omega \\cdot t + \\delta)" },
-        { label: "Phase error only", expression: "e_o(t) = m(t)\\cos(\\delta)" },
-        { label: "Freq error only", expression: "e_o(t) = m(t)\\cos(\\Delta\\omega \\cdot t)" },
-      ],
-    },
-    blockDiagram: {
-      description: "Costas loop for carrier recovery in DSB-SC.",
-      svgLabel: "Costas Loop",
-      blocks: [
-        { label: "Input DSB-SC", x: 20, y: 70, w: 110, h: 35 },
-        { label: "× cos branch", x: 170, y: 30, w: 110, h: 35 },
-        { label: "× sin branch", x: 170, y: 110, w: 110, h: 35 },
-        { label: "LPF I", x: 330, y: 30, w: 80, h: 35 },
-        { label: "LPF Q", x: 330, y: 110, w: 80, h: 35 },
-        { label: "× Phase Det", x: 460, y: 70, w: 110, h: 35 },
-        { label: "VCO", x: 300, y: 180, w: 80, h: 35 },
-      ],
-      arrows: [
-        { from: 0, to: 1 },
-        { from: 0, to: 2 },
-        { from: 1, to: 3 },
-        { from: 2, to: 4 },
-        { from: 3, to: 5 },
-        { from: 4, to: 5 },
-        { from: 5, to: 6 },
-      ],
-    },
-    circuitDiagram: {
-      image: "carrier-ac_dsbsc.jpeg",
-      description: "Squaring loop carrier recovery circuit.",
-      svgLabel: "Carrier Acquisition Circuit",
-      elements: [
-        "Squaring device (produces 2ωc component)",
-        "Narrowband BPF at 2ωc",
-        "Frequency divider (÷2)",
-        "Output: recovered carrier at ωc",
-      ],
-    },
-    simulation: {
-      type: "am",
-      description: "Visualize effect of frequency/phase error on demodulation.",
-      parameters: [
-        { name: "Phase Error (deg)", default: 0, min: 0, max: 90, step: 5 },
-        { name: "Carrier Freq (Hz)", default: 50, min: 20, max: 200, step: 5 },
-        { name: "Message Freq (Hz)", default: 5, min: 1, max: 15, step: 1 },
-      ],
-    },
-    numericals: [
-      {
-        id: "ca-1",
-        title: "Attenuation Due to Phase Error",
-        difficulty: "Easy",
-        given: "Phase error δ = 45°",
-        formula: "Attenuation = cos(δ)",
-        steps: ["Output = m(t)cos(45°) = 0.707 m(t)", "Attenuation = 1 - 0.707 = 29.3%"],
-        answer: "Signal attenuated by 29.3% (3 dB loss)",
-      },
-      {
-        id: "ca-2",
-        title: "Beat Frequency Effect",
-        difficulty: "Medium",
-        given: "Δf = 2 Hz (frequency error)",
-        formula: "Output = m(t)cos(2π×2×t) — amplitude varies at 2 Hz",
-        steps: [
-          "The output amplitude varies sinusoidally at Δf = 2 Hz",
-          "Output goes to zero 4 times per second",
-          "Period of beating = 1/Δf = 0.5 s",
-          "Listener hears volume going up and down 2 times/sec",
-        ],
-        answer: "Volume fluctuates at 2 Hz — unacceptable distortion",
-      },
-      {
-        id: "ca-3",
-        title: "Squaring Loop Bandwidth",
-        difficulty: "Hard",
-        given: "DSB-SC BW = 10 kHz at fc = 1 MHz, SNR = 20 dB",
-        formula: "PLL loop BW << DSB-SC BW for good tracking",
-        steps: [
-          "Squared signal has component at 2fc = 2 MHz",
-          "BPF at 2 MHz with BW ≈ 100 Hz (narrow)",
-          "After ÷2: carrier at 1 MHz",
-          "PLL tracks with loop BW ≈ 10-100 Hz",
-        ],
-        answer: "PLL loop bandwidth ≈ 10-100 Hz for good carrier recovery",
-      },
-    ],
-  },
 
   // ─── 14. PLL ───
   {
@@ -1379,11 +1225,13 @@ const topics_core: TopicData[] = [
     },
     simulation: {
       type: "pll",
-      description: "Visualize PLL locking onto an FM signal frequency.",
+      description: "Physically accurate PLL simulation. Models the feedback loop (multiplier, filter, VCO) to demonstrate phase locking and signal recovery.",
       parameters: [
-        { name: "Lock State (0=Off, 1=On)", default: 1, min: 0, max: 1, step: 1 },
-        { name: "Center Freq (Hz)", default: 50, min: 20, max: 200, step: 5 },
-        { name: "Message Freq (Hz)", default: 3, min: 1, max: 15, step: 1 },
+        { name: "Input Amp (Ac)", default: 5, min: 1, max: 10, step: 0.5 },
+        { name: "Loop Gain (K)", default: 50, min: 10, max: 200, step: 5 },
+        { name: "Filter Cutoff (Hz)", default: 10, min: 2, max: 50, step: 1 },
+        { name: "Channel Noise", default: 0.02, min: 0, max: 0.5, step: 0.01 },
+        { name: "Message Freq (fm)", default: 3, min: 1, max: 15, step: 1 },
       ],
     },
     numericals: [
@@ -1470,24 +1318,27 @@ const topics_core: TopicData[] = [
       ],
     },
     circuitDiagram: {
-      image: "superhe..jpeg",
-      description: "Complete superheterodyne AM receiver with AGC loop.",
-      svgLabel: "Superheterodyne Circuit",
+      image: "superhet_realistic.png",
+      description: "Premium Superheterodyne Receiver schematic featuring RF, LO, Mixer, and IF stages on a realistic workspace.",
+      svgLabel: "Realistic Superheterodyne Receiver",
       elements: [
-        "RF tuned circuit (variable capacitor)",
-        "Mixer stage (transistor or diode)",
-        "IF transformers at 455 kHz",
-        "Envelope detector",
-        "AGC feedback to IF/RF stages",
+        "RF Filter Stage (Pre-selector)",
+        "Local Oscillator (Ganged with RF)",
+        "Mixer/Frequency Converter",
+        "IF Filter Chain (High Selectivity)",
+        "Envelope Detector & Audio Stage",
       ],
     },
     simulation: {
-      type: "am",
-      description: "Visualize frequency conversion in superheterodyne receiver.",
+      type: "superhet",
+      description: "Realistic Superheterodyne simulation. Adjust RF Gain, IF Selectivity, and LO Stability to see the impact on Image Rejection and Signal SNR.",
       parameters: [
-        { name: "RF Carrier (Hz)", default: 100, min: 50, max: 200, step: 5 },
-        { name: "IF (Hz)", default: 30, min: 10, max: 50, step: 5 },
+        { name: "RF Stage Gain", default: 1.2, min: 0.5, max: 2.5, step: 0.1 },
+        { name: "LO Stability", default: 0.98, min: 0.8, max: 1.0, step: 0.01 },
+        { name: "IF Filter Q", default: 25, min: 5, max: 80, step: 1 },
+        { name: "Carrier Freq (Hz)", default: 100, min: 50, max: 200, step: 5 },
         { name: "Message Freq (Hz)", default: 3, min: 1, max: 10, step: 1 },
+        { name: "Channel Noise", default: 0.05, min: 0, max: 0.5, step: 0.01 },
       ],
     },
     numericals: [
@@ -1646,24 +1497,29 @@ const topics_core: TopicData[] = [
       ],
     },
     circuitDiagram: {
-      image: "fm.jpeg",
-      description: "VCO-based direct FM transmitter using a varactor diode.",
-      svgLabel: "FM Transmitter Circuit",
+      image: "fm_realistic.png",
+      description: "High-Fidelity 2N3904 FM Transmitter. This 'bug' circuit modulates the carrier by varying the base-emitter capacitance through mic bias.",
+      svgLabel: "Realistic FM Transmitter Circuit",
       elements: [
-        "LC tank oscillator",
-        "Varactor diode for frequency tuning",
-        "Message signal biases varactor",
-        "Buffer amplifier at output",
-        "Frequency multiplier chain",
+        "Q1 (2N3904) - High-frequency NPN transistor",
+        "L1 and C4 (1-40pF) - Resonant LC tank circuit",
+        "Mic Input with C3 (1uF) coupling",
+        "R1 (5.6k), R2 (10k) - Base bias network",
+        "R3 (1k) - Emitter degeneration stability",
+        "C2 (4.7pF) - Oscillatory feedback loop",
+        "C1 (0.01uF) - Supply noise decoupling",
       ],
     },
     simulation: {
-      type: "fm",
-      description: "Visualize FM waveform with adjustable modulation index.",
+      type: "fm-realistic",
+      description: "Component-level FM Transmitter simulation. Adjust L, C, and Supply Voltage to see how they impact oscillator frequency and SNR.",
       parameters: [
-        { name: "Modulation Index (β)", default: 5, min: 0.5, max: 15, step: 0.5 },
-        { name: "Carrier Freq (Hz)", default: 50, min: 20, max: 200, step: 5 },
-        { name: "Message Freq (Hz)", default: 3, min: 1, max: 15, step: 1 },
+        { name: "Supply (Vcc)", default: 9, min: 3, max: 18, step: 0.5 },
+        { name: "Inductance (uH)", default: 0.15, min: 0.05, max: 0.5, step: 0.01 },
+        { name: "Capacitance (pF)", default: 35, min: 10, max: 100, step: 5 },
+        { name: "Tank Q-Factor", default: 15, min: 5, max: 50, step: 1 },
+        { name: "Mic Sensitivity", default: 4, min: 1, max: 10, step: 0.5 },
+        { name: "Channel Noise", default: 0.05, min: 0, max: 0.5, step: 0.01 },
       ],
     },
     numericals: [
@@ -1745,22 +1601,23 @@ const topics_core: TopicData[] = [
     },
     circuitDiagram: {
       image: "pm.jpeg",
-      description: "PM using a voltage-variable phase shifter in the carrier path.",
-      svgLabel: "PM Circuit",
+      description: "Voltage-controlled phase shifter using a varactor diode bridge.",
+      svgLabel: "PM Circuit (Varactor Bridge)",
       elements: [
-        "Crystal oscillator (stable carrier)",
-        "Voltage-variable phase shifter",
-        "Message signal controls phase shift",
-        "Buffer/amplifier at output",
+        "Crystal oscillator (stable carrier source)",
+        "Varactor diode D1 (voltage-variable capacitance)",
+        "Phase-shift network (L1 and D1 bridge)",
+        "Resistor bias network R_bias",
+        "Buffer amplifier at output",
       ],
     },
     simulation: {
       type: "pm",
-      description: "Visualize PM waveform.",
+      description: "Realistic PM simulation. Adjust the Varactor Bias and Phase Sensitivity to control the phase deviation.",
       parameters: [
-        { name: "Phase Deviation kp (rad)", default: 2, min: 0.5, max: 10, step: 0.5 },
-        { name: "Carrier Freq (Hz)", default: 50, min: 20, max: 200, step: 5 },
-        { name: "Message Freq (Hz)", default: 3, min: 1, max: 15, step: 1 },
+        { name: "Varactor Bias (V)", default: 5, min: 1, max: 10, step: 0.5 },
+        { name: "Phase Sensitivity (Kp)", default: 2, min: 0.5, max: 10, step: 0.5 },
+        { name: "Channel Noise", default: 0.02, min: 0, max: 0.5, step: 0.01 },
       ],
     },
     numericals: [
@@ -1844,22 +1701,24 @@ const topics_core: TopicData[] = [
     },
     circuitDiagram: {
       image: "nbfm.jpeg",
-      description: "NBFM generator using a balanced modulator and phase adder.",
-      svgLabel: "NBFM Circuit",
+      description: "Armstrong modulator for generating NBFM using an indirect method.",
+      svgLabel: "NBFM Armstrong Circuit",
       elements: [
-        "Crystal oscillator for stable carrier",
-        "Integrator for m(t)",
-        "Balanced modulator",
-        "Adder for cos(ωc·t) + modulated component",
+        "Integrator circuit for m(t)",
+        "Balanced Modulator for DSB-SC creation",
+        "Crystal oscillator (center frequency)",
+        "90° degree phase shifter",
+        "Adder Stage for phasor summation",
       ],
     },
     simulation: {
-      type: "fm",
-      description: "Visualize NBFM waveform with small β.",
+      type: "nbfm",
+      description: "Realistic NBFM simulation. Demonstrates the phasor addition method cos(ωct) - β·sin(ωmt)sin(ωct).",
       parameters: [
-        { name: "Mod Index β", default: 0.3, min: 0.05, max: 1, step: 0.05 },
-        { name: "Carrier Freq (Hz)", default: 50, min: 20, max: 200, step: 5 },
-        { name: "Message Freq (Hz)", default: 5, min: 1, max: 15, step: 1 },
+        { name: "Integrator Gain", default: 0.3, min: 0.1, max: 1.0, step: 0.1 },
+        { name: "Modulator Balance", default: 1.0, min: 0, max: 1.0, step: 0.1 },
+        { name: "Carrier Level", default: 1.0, min: 0.5, max: 2.0, step: 0.1 },
+        { name: "Channel Noise", default: 0.01, min: 0, max: 0.2, step: 0.01 },
       ],
     },
     numericals: [
@@ -1941,23 +1800,25 @@ const topics_core: TopicData[] = [
       ],
     },
     circuitDiagram: {
-      image: "nbpm.jpeg",
-      description: "NBPM uses the same structure as NBFM but without the integrator.",
-      svgLabel: "NBPM Circuit",
+      image: "nbpm_realistic.png",
+      description: "Realistic Narrowband PM (NBPM) Generator: Uses a stable carrier oscillator with a -90 phase shift network and a balanced modulator.",
+      svgLabel: "Realistic NBPM Circuit",
       elements: [
-        "Crystal oscillator for carrier",
-        "Balanced modulator for kp·m(t)·sin(ωc·t)",
-        "Adder: carrier + modulated signal",
-        "Output: NBPM signal",
+        "Carrier Oscillator (cos wc t)",
+        "Quadrature Phase Shifter (-90 deg)",
+        "Balanced Modulator (DSB-SC)",
+        "Summing Junction (Carrier + sidebands)",
       ],
     },
     simulation: {
-      type: "pm",
-      description: "Visualize NBPM waveform with small phase deviation.",
+      type: "nbpm",
+      description: "Realistic NBPM simulation. Demonstrates generation via quadrature carrier addition: Ac*cos(wc*t) - Ac*kp*m(t)*sin(wc*t).",
       parameters: [
-        { name: "Phase Dev kp (rad)", default: 0.3, min: 0.05, max: 1, step: 0.05 },
-        { name: "Carrier Freq (Hz)", default: 50, min: 20, max: 200, step: 5 },
+        { name: "Carrier Level", default: 1.0, min: 0.5, max: 2.0, step: 0.1 },
+        { name: "Phase Sensitivity (Kp)", default: 0.2, min: 0.05, max: 0.5, step: 0.05 },
+        { name: "Carrier Freq (Hz)", default: 50, min: 20, max: 150, step: 5 },
         { name: "Message Freq (Hz)", default: 5, min: 1, max: 15, step: 1 },
+        { name: "Channel Noise", default: 0.01, min: 0, max: 0.2, step: 0.01 },
       ],
     },
     numericals: [
@@ -2040,13 +1901,24 @@ const topics_core: TopicData[] = [
     },
     circuitDiagram: {
       image: "demo fm.jpeg",
-      description: "Balanced discriminator using two detuned resonant circuits.",
+      description: "Balanced discriminator (FM Demodulator) using stagger-tuned circuits.",
       svgLabel: "FM Discriminator Circuit",
       elements: [
-        "Two LC circuits tuned above and below fc",
-        "Envelope detectors on each LC output",
-        "Subtractor to get difference (S-curve characteristic)",
-        "Output proportional to frequency deviation",
+        "Center-tapped input transformer",
+        "Top LC tank (tuned to fc + Δf)",
+        "Bottom LC tank (tuned to fc - Δf)",
+        "Two diode envelope detectors",
+        "Subtractor/Adder for message recovery",
+      ],
+    },
+    simulation: {
+      type: "fm-demod",
+      description: "Demodulation of FM using a Balanced Discriminator. Shows the frequency-to-voltage conversion (S-curve).",
+      parameters: [
+        { name: "LC Tuning Dev", default: 10, min: 1, max: 20, step: 1 },
+        { name: "Detector Gain", default: 1.0, min: 0.5, max: 2.0, step: 0.1 },
+        { name: "LPF Cutoff", default: 5, min: 1, max: 15, step: 1 },
+        { name: "Channel Noise", default: 0.02, min: 0, max: 0.5, step: 0.01 },
       ],
     },
     numericals: [
@@ -2346,12 +2218,263 @@ const noiseTopics: TopicData[] = [
   },
 ];
 
+// ============================================================
+// LAB EXPERIMENTS — Step-by-step practical guides
+// ============================================================
+const experimentTopics: TopicData[] = [
+  {
+    id: "am-experiment",
+    title: "Amplitude Modulation (Lab)",
+    category: "Lab Experiments",
+    theory: {
+      points: [
+        "A continuous-wave goes on continuously without any intervals and it is the base-band message signal, which contains the information. This wave has to be modulated.",
+        "According to the standard definition, 'The amplitude of the carrier signal varies in accordance with the instantaneous amplitude of the modulating signal.'",
+        "The circuit for Amplitude modulation consists of diode, resistors and a LC circuit.",
+        "The mixed signal from the message and carrier source is fed to the diode and resistor, which rectifies the signal.",
+        "The LC circuit is a band-pass filter whose frequency is equal to the carrier frequency.",
+        "The parallel LC circuit allows only the AM output (both carrier signal and its sideband) to pass through and shunts off other signals to ground.",
+        "At the carrier frequency, L and C repeatedly exchange energy with each other resulting in an oscillation that produces negative half-cycle pulse for every positive pulse coming out of the diode.",
+        "The amplitude of the negative pulse follow the positive cycles so we get a complete waveform.",
+      ],
+      formulas: [
+        { label: "Modulation Index", expression: "\\mu = \\frac{A_m}{A_c}" },
+        { label: "Time-domain Representation", expression: "S(t) = [A_c + A_m \\cos(2\\pi f_m t)] \\cos(2\\pi f_c t)" },
+        { label: "Modulation Index (from Peak)", expression: "\\mu = \\frac{A_{max} - A_{min}}{A_{max} + A_{min}}" },
+      ],
+    },
+    blockDiagram: {
+      description: "Diode-based modulator with LC tank filter.",
+      svgLabel: "AM Experiment Block Diagram",
+      blocks: [
+        { label: "Summer (m(t)+c(t))", x: 20, y: 60, w: 120, h: 40 },
+        { label: "Diode Rectifier", x: 180, y: 60, w: 100, h: 40 },
+        { label: "LC Tank (BPF)", x: 320, y: 60, w: 100, h: 40 },
+        { label: "AM Output", x: 460, y: 60, w: 100, h: 40 },
+      ],
+      arrows: [
+        { from: 0, to: 1 },
+        { from: 1, to: 2 },
+        { from: 2, to: 3 },
+      ],
+    },
+    circuitDiagram: {
+      description: "Practical Diode Modulator circuit using V1=2V (1kHz), V2=4V (20kHz), and an LC filter tuned to the carrier.",
+      svgLabel: "Lab AM Modulator Schematic",
+      elements: [
+        "V1 (Message Signal) - 2.00V, 1.00kHz",
+        "V2 (Carrier Signal) - 4.00V, 20.0kHz",
+        "R3, R4 (Mixing Resistors) - 1.00kΩ each",
+        "D1 (Diode) - Rectifies the composite signal",
+        "R1 (Bias Resistor) - 2.20kΩ",
+        "R2 (Load Resistor) - 1kΩ",
+        "C1 (Filter Capacitor) - 1μF",
+        "L1 (Inductor) - 1.00mH (forming LC tank)",
+      ],
+    },
+    simulation: {
+      type: "am-experiment",
+      description: "Interactive simulation of the Diode Modulator lab circuit. Observe how the Rectification and LC filtering stages create the AM envelope.",
+      parameters: [
+        { name: "Message Amp (Am)", default: 2, min: 0, max: 5, step: 0.1 },
+        { name: "Carrier Amp (Ac)", default: 4, min: 1, max: 10, step: 0.1 },
+        { name: "Message Freq (fm)", default: 1000, min: 100, max: 5000, step: 100 },
+        { name: "Carrier Freq (fc)", default: 20000, min: 5000, max: 50000, step: 1000 },
+        { name: "Tank Tuning (Q)", default: 15, min: 5, max: 50, step: 1 },
+      ],
+    },
+    experiment: {
+      aim: "To design an Amplitude Modulator circuit by using diodes and observing the modulation performed for a given waveform.",
+      apparatus: [
+        "Voltage Supply",
+        "Function Generator",
+        "Oscilloscope",
+        "Probes",
+      ],
+      componentsRequired: [
+        "Bread Board",
+        "Diode (1N4007 or similar)",
+        "Capacitor - 1μF (1)",
+        "Resistors - 1kΩ (3), 2.2kΩ (1)",
+        "Inductor 1mH",
+        "Connecting Wires",
+      ],
+      observations: [
+        "The positive and negative peaks of the carrier wave are interconnected with an imaginary line called 'Envelope'.",
+        "The envelope shape recreates the exact shape of the modulating signal.",
+        "With m(t)=2V and c(t)=4V, the modulation index μ = 0.5, which is < 1 (Undermodulation).",
+      ],
+      conclusion: "We have successfully observed the undistorted modulated signal with μ < 1 and the Envelope of modulated signal was observed to vary between (Ac - Am) and (Ac + Am).",
+      image: "/am_lab_setup_realistic_1776663905403.png",
+    },
+  },
+  {
+    id: "am-demod-experiment",
+    title: "Amplitude Demodulation (Lab)",
+    category: "Lab Experiments",
+    theory: {
+      points: [
+        "After modulation, we need to get our original signal from carrier wave. The process of getting original signal is called demodulation and the device used to do this is called demodulator.",
+        "The modulated signal is given by y(t) = [A + m(t)] cos(ωct).",
+        "After passing through the diode (rectification), the signal contains a DC term, message frequency components, and higher-order carrier harmonics.",
+        "A low-pass filter (RC filter) is used to block the higher frequency components (ωc, 2ωc, etc.).",
+        "The remaining signal after filtering is proportional to the original message signal m(t).",
+        "Mathematically, the extracted (filtered) signal's amplitude is reduced by a factor of 1/π.",
+      ],
+      formulas: [
+        { label: "Rectified Output", expression: "y(t)_{rect} = [A + m(t)] \\cos(\\omega_c t) \\times [\\frac{1}{2} + \\frac{2}{\\pi}(\\cos \\omega_c t - \\frac{1}{3} \\cos 3\\omega_c t + \\dots)]" },
+        { label: "Demodulated m(t)", expression: "v_{out}(t) = \\frac{m(t)}{\\pi}" },
+      ],
+    },
+    blockDiagram: {
+      description: "Simple Diode Envelope Detector with RC Low Pass Filter.",
+      svgLabel: "AM Demodulation Block Diagram",
+      blocks: [
+        { label: "AM Input", x: 20, y: 60, w: 100, h: 40 },
+        { label: "Diode Rectifier", x: 170, y: 60, w: 100, h: 40 },
+        { label: "RC LPF", x: 320, y: 60, w: 100, h: 40 },
+        { label: "Detected m(t)", x: 470, y: 60, w: 100, h: 40 },
+      ],
+      arrows: [
+        { from: 0, to: 1 },
+        { from: 1, to: 2 },
+        { from: 2, to: 3 },
+      ],
+    },
+    circuitDiagram: {
+      description: "Practical Diode Envelope Detector using 10kΩ resistor and 1μF capacitor as a Low Pass Filter.",
+      svgLabel: "Lab AM Demodulator Schematic",
+      elements: [
+        "AM Wave Input - Modulated signal from experiment 1",
+        "D1 (Diode) - Half-wave rectifier",
+        "R (Load Resistor) - 10kΩ",
+        "C (Filter Capacitor) - 1μF (forming RC LPF)",
+        "Demodulated Signal - Recovered baseband message",
+      ],
+    },
+    simulation: {
+      type: "am-demod-experiment",
+      description: "Visualize the rectification and filtering process. Observe the ripple and the factor of 1/π reduction in the output amplitude.",
+      parameters: [
+        { name: "Input AM Amp", default: 6, min: 2, max: 15, step: 0.5 },
+        { name: "Filter Resistance (R)", default: 10, min: 1, max: 50, step: 1 },
+        { name: "Filter Capacitance (C)", default: 1, min: 0.1, max: 10, step: 0.1 },
+        { name: "Carrier Freq (Hz)", default: 50, min: 20, max: 200, step: 5 },
+        { name: "Message Freq (Hz)", default: 3, min: 1, max: 15, step: 1 },
+      ],
+    },
+    experiment: {
+      aim: "To design an Amplitude Demodulation circuit and observe the recovery of the message signal from a modulated carrier.",
+      apparatus: [
+        "Breadboard",
+        "Function generators",
+        "DSO (Digital Signal Oscilloscope)",
+        "Capacitor (1μF)",
+        "Resistors (1kΩ, 2.2kΩ, 10kΩ)",
+        "Inductance Box",
+        "Probes & connecting wires",
+      ],
+      componentsRequired: [
+        "Bread Board",
+        "Diode (1N4007)",
+        "Capacitor - 1μF (1)",
+        "Resistor - 10kΩ (1)",
+        "Connecting Wires",
+      ],
+      observations: [
+        "The process of getting the original signal from the carrier wave is successful.",
+        "The RC filter effectively blocks the high-frequency carrier components.",
+        "The output signal amplitude is observed to be reduced by a factor of approximately 1/π compared to the original message.",
+      ],
+      conclusion: "We successfully implemented the circuit and observed the original signal recovery. The amplitude reduction matches the theoretical 1/π factor.",
+    },
+  },
+  {
+    id: "fm-555-experiment",
+    title: "Frequency Modulation (555)",
+    category: "Lab Experiments",
+    theory: {
+      points: [
+        "Frequency Modulation is a form of modulation in which changes in the carrier wave frequency correspond directly to changes in the baseband signal.",
+        "FM is considered an analog form of modulation because the band signal is typically an analog waveform without discrete digital values.",
+        "A generalized sinusoidal signal is given by φ(t) = A cos[θ(t)], where θ(t) is the generalized angle function of time.",
+        "The instantaneous frequency ωi is defined as ωi = ωc + k_FM * m(t).",
+        "The 555 timer in Astable mode acts as a Voltage Controlled Oscillator (VCO). By applying the message signal to the Control Voltage (Pin 5), we modulate the charging/discharging thresholds, varying the frequency.",
+        "The carrier frequency (free-running frequency) for this setup is approximately 3.07 kHz based on Ra=Rb=4.7kΩ and C=0.1μF.",
+      ],
+      formulas: [
+        { label: "Phase Function", expression: "\\theta(t) = \\omega_c t + k_f \\int m(\\alpha) \\, d\\alpha" },
+        { label: "FM Waveform", expression: "\\phi_{FM}(t) = A \\cos[\\omega_c t + k_f \\int m(\\alpha) \\, d\\alpha]" },
+        { label: "Astable Frequency", expression: "f_0 = \\frac{1}{0.693 \\times (R_a + R_b) \\times C}" },
+      ],
+    },
+    blockDiagram: {
+      description: "555 Timer configured as a Voltage Controlled Oscillator (VCO).",
+      svgLabel: "FM 555 Block Diagram",
+      blocks: [
+        { label: "Message m(t)", x: 20, y: 60, w: 100, h: 40 },
+        { label: "555 VCO (Pin 5)", x: 170, y: 30, w: 120, h: 100 },
+        { label: "FM Output (Pin 3)", x: 340, y: 60, w: 120, h: 40 },
+      ],
+      arrows: [
+        { from: 0, to: 1 },
+        { from: 1, to: 2 },
+      ],
+    },
+    circuitDiagram: {
+      description: "Practical FM circuit using a 555 Timer in Astable mode. Message signal is applied to Pin 5.",
+      svgLabel: "Lab FM 555 Schematic",
+      elements: [
+        "555 Timer IC (Astable Configuration)",
+        "Ra, Rb (Timing Resistors) - 4.70kΩ each",
+        "C (Timing Capacitor) - 0.1μF",
+        "Control Voltage (Pin 5) - Modulation Input",
+        "Output (Pin 3) - Frequency Modulated Square Wave",
+      ],
+    },
+    simulation: {
+      type: "fm-555-experiment",
+      description: "Observe how the input analog signal modulates the frequency of the 555 timer's square wave output.",
+      parameters: [
+        { name: "Message Amp (Am)", default: 2, min: 0, max: 5, step: 0.1 },
+        { name: "Message Freq (fm)", default: 200, min: 10, max: 1000, step: 10 },
+        { name: "Carrier Freq (fc)", default: 3070, min: 1000, max: 10000, step: 100 },
+        { name: "Mod Sens (Sensitivity)", default: 50, min: 10, max: 200, step: 5 },
+      ],
+    },
+    experiment: {
+      aim: "To design a frequency Modulation circuit using a 555 timer.",
+      apparatus: [
+        "Breadboard",
+        "555 Timer IC",
+        "Capacitors - 10μF, 0.1μF",
+        "Resistors - 4.7kΩ (2), 10kΩ (1)",
+        "Probes & Connecting Wires",
+      ],
+      componentsRequired: [
+        "Bread Board",
+        "555 Timer IC (1)",
+        "Capacitor - 0.1μF (1)",
+        "Resistors - 4.7kΩ (2), 10kΩ (1)",
+        "Connecting Wires",
+      ],
+      observations: [
+        "The output frequency of the 555 timer changes in proportion to the instantaneous amplitude of the message signal.",
+        "A higher message voltage results in a lower frequency (due to charging threshold shift).",
+        "The output is a constant amplitude square wave with varying pulse width/frequency.",
+      ],
+      conclusion: "We successfully implemented a frequency modulated signal using a 555 timer with a carrier frequency of approximately 3.07 kHz.",
+    },
+  },
+];
+
 // Combine all topics
 export const topics: TopicData[] = [
   ...topics_core,
   ...introTopics,
   ...signalsTopics,
   ...noiseTopics,
+  ...experimentTopics,
 ];
 
 // ============================================================
@@ -2369,10 +2492,10 @@ export const categories = [
   {
     name: "Amplitude Modulation",
     topicIds: [
-      "am", "nonlinear-modulator", "switching-modulator", "ring-modulator",
+      "am", "nonlinear-modulator", "ring-modulator",
       "frequency-mixer", "dsb-sc", "am-demodulation", "envelope-detector",
       "ssb", "hilbert-transform", "qam", "vsb",
-      "carrier-acquisition", "superheterodyne",
+      "superheterodyne",
     ],
   },
   {
@@ -2389,5 +2512,9 @@ export const categories = [
   {
     name: "Noise Analysis",
     topicIds: ["noise-intro", "snr-analysis"],
+  },
+  {
+    name: "Lab Experiments",
+    topicIds: ["am-experiment", "am-demod-experiment", "fm-555-experiment"],
   },
 ];

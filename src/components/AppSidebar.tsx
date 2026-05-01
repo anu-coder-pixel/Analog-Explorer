@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Radio, Waves, Menu, X, Rocket, Monitor, Zap, BarChart3 } from "lucide-react";
+import { ChevronDown, ChevronRight, Radio, Waves, Menu, X, Rocket, Monitor, Zap, BarChart3, Beaker } from "lucide-react";
 import { categories, topics } from "@/data/topics";
 import { cn } from "@/lib/utils";
 
@@ -53,6 +53,7 @@ export function AppSidebar({ selectedTopicId, onSelectTopic }: SidebarProps) {
             "Phase Locked Loop": <Waves className="w-4 h-4" />,
             "Angle Modulation": <Waves className="w-4 h-4" />,
             "Noise Analysis": <BarChart3 className="w-4 h-4" />,
+            "Lab Experiments": <Beaker className="w-4 h-4" />,
           };
           const icon = iconMap[cat.name] || <Radio className="w-4 h-4" />;
           return (
